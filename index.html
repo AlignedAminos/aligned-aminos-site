@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Aligned Aminos — Palette Preview v2 (Ember)</title>
+<title>Aligned Aminos — Research-Grade Peptides</title>
 <style>
 /* ===== Tokens — EMBER palette ===== */
 :root {
@@ -1074,6 +1074,14 @@ p.lede {
         </div>
 
         <div class="field">
+          <label for="cf-phone">
+            Phone
+            <span class="field__optional">— Optional</span>
+          </label>
+          <input id="cf-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(555) 555-5555" />
+        </div>
+
+        <div class="field">
           <label for="cf-instagram">
             Instagram handle
             <span class="field__optional">— Optional</span>
@@ -1117,6 +1125,13 @@ p.lede {
           <textarea id="cf-message" name="message" rows="4" placeholder="A few words on what you're researching, your goals, anything you want us to know before we reply."></textarea>
         </div>
 
+        <!-- Honeypot: invisible to humans, filled by bots, used to filter spam. -->
+        <div style="position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden;" aria-hidden="true">
+          <label>Don't fill this out if you're human:
+            <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" />
+          </label>
+        </div>
+
         <button type="submit" class="btn btn--primary contact__submit">
           Send <span aria-hidden="true">&rarr;</span>
         </button>
@@ -1135,70 +1150,94 @@ p.lede {
 
 <script>
 /* =========================================================
-   Contact form — mailto handler
-   Routes submissions to teamalignedstrength@gmail.com using
-   the WEB LEAD: subject convention so they slot into the
-   existing CRM cheat-sheet workflow.
+   Contact form — Web3Forms handler
+   Posts the form to api.web3forms.com, which emails the
+   parsed submission to Alignedaminos@proton.me with the
+   WEB LEAD: subject convention so it slots into the existing
+   CRM cheat-sheet workflow. Free, unlimited, mobile-reliable.
+   Access key is a public form ID (not a secret) — rotate via
+   the Web3Forms dashboard if abuse ever happens.
    ========================================================= */
 (() => {
   const form   = document.getElementById('contact-form');
   const status = document.getElementById('contact-status');
   if (!form) return;
 
-  const RECIPIENT = 'Alignedaminos@proton.me';
+  const ACCESS_KEY = 'ab1d26f3-dc9b-4689-aef2-ada34594cb0a';
+  const ENDPOINT   = 'https://api.web3forms.com/submit';
+  const FALLBACK   = 'Alignedaminos@proton.me';
 
-  const escape = (v) => (v || '').trim();
+  const trim = (v) => (v || '').trim();
 
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const name       = escape(form.name.value);
-    const email      = escape(form.email.value);
-    const instagram  = escape(form.instagram.value);
-    const source     = escape(form.source.value);
-    const experience = escape(form.experience.value);
-    const message    = escape(form.message.value);
+    const name       = trim(form.name.value);
+    const email      = trim(form.email.value);
+    const phone      = trim(form.phone.value);
+    const instagram  = trim(form.instagram.value);
+    const source     = trim(form.source.value);
+    const experience = trim(form.experience.value);
+    const message    = trim(form.message.value);
+    const botcheck   = form.botcheck && form.botcheck.checked;
 
-    // Basic required-field check (matches HTML required attrs but
-    // friendlier than the browser default popup)
     if (!name || !email) {
       status.innerHTML = 'Name and email are required.';
       return;
     }
 
-    const subject = `WEB LEAD: ${name}`;
+    // Honeypot: bot got caught. Fake success so we don't tip them off.
+    if (botcheck) {
+      status.innerHTML = 'Thanks — your message is on its way.';
+      form.reset();
+      return;
+    }
 
-    // Structured body — formatted for clean CRM scrubbing.
-    // Each field on its own line, blank line before the message body.
-    const bodyLines = [
-      `Name: ${name}`,
-      `Email: ${email}`,
-      `Instagram: ${instagram || '(not provided)'}`,
-      `How found us: ${source || '(not provided)'}`,
-      `Peptide experience: ${experience || '(not provided)'}`,
-      ``,
-      `Message:`,
-      message || '(none provided)',
-      ``,
-      `—`,
-      `Submitted from alignedaminos.com on ${new Date().toISOString().slice(0,16).replace('T',' ')} UTC`
-    ];
-    const body = bodyLines.join('\n');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalLabel = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = 'Sending…';
+    status.innerHTML = '';
 
-    const mailto =
-      `mailto:${RECIPIENT}` +
-      `?subject=${encodeURIComponent(subject)}` +
-      `&body=${encodeURIComponent(body)}`;
+    const payload = {
+      access_key: ACCESS_KEY,
+      subject: `WEB LEAD: ${name}`,
+      from_name: 'Aligned Aminos Website',
+      botcheck: '',
+      name: name,
+      email: email,
+      phone: phone || '(not provided)',
+      instagram: instagram || '(not provided)',
+      how_found_us: source || '(not provided)',
+      peptide_experience: experience || '(not provided)',
+      message: message || '(none provided)',
+      submitted_from: `${window.location.host}${window.location.pathname} on ${new Date().toISOString().slice(0,16).replace('T',' ')} UTC`,
+    };
 
-    // Trigger the user's email client
-    window.location.href = mailto;
+    try {
+      const res = await fetch(ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
 
-    // Show fallback guidance — many users don't have a default
-    // mail handler configured (especially on mobile/web-mail).
-    status.innerHTML =
-      'Your email app should be opening now with the message ready to send. ' +
-      "If nothing happened, copy your message and send to " +
-      `<a href="mailto:${RECIPIENT}">${RECIPIENT}</a>.`;
+      if (data.success) {
+        status.innerHTML = 'Thanks — your message is on its way. We respond within 24 hours.';
+        form.reset();
+      } else {
+        status.innerHTML =
+          "Hm, that didn't go through. Please try again, or email " +
+          `<a href="mailto:${FALLBACK}">${FALLBACK}</a> directly.`;
+      }
+    } catch (err) {
+      status.innerHTML =
+        "Couldn't reach the server. Check your connection and try again, " +
+        `or email <a href="mailto:${FALLBACK}">${FALLBACK}</a> directly.`;
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalLabel;
+    }
   });
 })();
 </script>
