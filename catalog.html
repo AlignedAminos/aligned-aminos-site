@@ -181,9 +181,15 @@ html, body {
   gap: 14px;
   margin: -24px 0 56px;
   padding: 16px 20px;
-  background: var(--bg-elev-1);
+  background: rgba(13, 15, 18, 0.92);
+  backdrop-filter: saturate(140%) blur(10px);
+  -webkit-backdrop-filter: saturate(140%) blur(10px);
   border: 1px solid var(--border-default);
   border-radius: 8px;
+  position: sticky;
+  top: 152px;
+  z-index: 9;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
 }
 .catalog__jump-label {
   font-family: var(--font-mono);
@@ -223,7 +229,7 @@ html, body {
 /* ===== Category sections ===== */
 .catalog-section {
   margin-bottom: 64px;
-  scroll-margin-top: 100px;
+  scroll-margin-top: 240px;
 }
 .catalog-section:last-child { margin-bottom: 0; }
 
@@ -631,6 +637,14 @@ html, body {
 
 <div class="wrap">
 
+  <!-- Category jump menu — sticky for the whole catalog page -->
+  <div class="catalog__jump">
+    <label class="catalog__jump-label" for="catalog-jump">Jump to</label>
+    <select class="catalog__jump-select" id="catalog-jump" aria-label="Jump to category">
+      <option value="">All categories</option>
+    </select>
+  </div>
+
   <!-- ===== Catalog header ===== -->
   <section class="section">
     <header class="catalog__header">
@@ -645,14 +659,6 @@ html, body {
         Laboratory research use only &middot; Not for human consumption
       </aside>
     </header>
-
-    <!-- Category jump menu -->
-    <div class="catalog__jump">
-      <label class="catalog__jump-label" for="catalog-jump">Jump to</label>
-      <select class="catalog__jump-select" id="catalog-jump" aria-label="Jump to category">
-        <option value="">All categories</option>
-      </select>
-    </div>
 
     <!-- JS-rendered catalog sections -->
     <div id="catalog-root"></div>
@@ -780,24 +786,24 @@ const PRODUCTS = [
   // ─── Metabolic & GLP-1 ───────────────────────────────────────────────
   { cat: 'metabolic', name: 'Tirzepatide',     slug: 'tirzepatide',              sub: 'GIP / GLP-1 dual agonist',          mass: '20 mg', vials: 10, price: 415 },
   { cat: 'metabolic', name: 'Retatrutide',     slug: 'retatrutide',              sub: 'GLP-1 / GIP / Glucagon triple agonist', mass: '20 mg', vials: 10, price: 760 },
-  { cat: 'metabolic', name: 'MOTS-c',          slug: 'mots-c',                   sub: 'Mitochondrial-derived peptide',     mass: '40 mg', vials: 10, price: 725 },
-  { cat: 'metabolic', name: 'AOD-9604',        slug: 'aod-9604',                 sub: 'GH fragment 176-191',               mass: '5 mg',  vials: 10, price: 395 },
-  { cat: 'metabolic', name: '5-Amino-1MQ',     slug: '5-amino-1mq',              sub: 'Selective NNMT inhibitor',          mass: '50 mg', vials: 10, price: 660 },
+  { cat: 'metabolic', name: 'MOTS-c',          slug: 'mots-c',                   sub: 'Mitochondrial-derived peptide',     mass: '40 mg', vials: 10, price: 945 },
+  { cat: 'metabolic', name: 'AOD-9604',        slug: 'aod-9604',                 sub: 'GH fragment 176-191',               mass: '10 mg', vials: 10, price: 820 },
+  { cat: 'metabolic', name: '5-Amino-1MQ',     slug: '5-amino-1mq',              sub: 'Selective NNMT inhibitor',          mass: '50 mg', vials: 10, price: 450 },
 
   // ─── Recovery & Repair ───────────────────────────────────────────────
   { cat: 'recovery',  name: 'BPC-157',         slug: 'bpc-157',                  sub: 'Body Protection Compound',          mass: '10 mg', vials: 10, price: 265 },
   { cat: 'recovery',  name: 'TB-500',          slug: 'tb-500',                   sub: 'Thymosin Beta-4 (full-length)',     mass: '10 mg', vials: 10, price: 460 },
-  { cat: 'recovery',  name: 'KPV',             slug: 'kpv',                      sub: 'Lysine-Proline-Valine tripeptide',  mass: '10 mg', vials: 10, price: 200 },
+  { cat: 'recovery',  name: 'KPV',             slug: 'kpv',                      sub: 'Lysine-Proline-Valine tripeptide',  mass: '10 mg', vials: 10, price: 240 },
   { cat: 'recovery',  name: 'BPC-157 + TB-500',slug: 'bpc-157-tb-500-blend',     sub: 'Recovery stack blend',              mass: '20 mg', vials: 10, price: 660 },
   { cat: 'recovery',  name: 'GLOW',            slug: 'glow',                     sub: 'BPC-157 + GHK-Cu + TB-500',         mass: '70 mg', vials: 10, price: 725 },
   { cat: 'recovery',  name: 'KLOW',            slug: 'klow',                     sub: 'GLOW + KPV',                        mass: '80 mg', vials: 10, price: 860 },
-  { cat: 'recovery',  name: 'LL-37',           slug: 'll-37',                    sub: 'Cathelicidin antimicrobial peptide',mass: '5 mg',  vials: 10, price: 345 },
+  { cat: 'recovery',  name: 'LL-37',           slug: 'll-37',                    sub: 'Cathelicidin antimicrobial peptide',mass: '5 mg',  vials: 10, price: 395 },
 
   // ─── Growth & GH Axis ────────────────────────────────────────────────
   { cat: 'gh-axis',   name: 'IGF-1 LR3',       slug: 'igf-1-lr3',                sub: 'Long arginine-3 IGF-1 analog',      mass: '1 mg',  vials: 10, price: 550 },
-  { cat: 'gh-axis',   name: 'Ipamorelin',      slug: 'ipamorelin',               sub: 'Selective GH secretagogue',         mass: '10 mg', vials: 10, price: 100 },
+  { cat: 'gh-axis',   name: 'Ipamorelin',      slug: 'ipamorelin',               sub: 'Selective GH secretagogue',         mass: '10 mg', vials: 10, price: 350 },
   { cat: 'gh-axis',   name: 'CJC-1295 + IPA',  slug: 'cjc-1295-ipamorelin-blend',sub: 'GHRH analog + ghrelin mimetic',     mass: '10 mg', vials: 10, price: 395 },
-  { cat: 'gh-axis',   name: 'Tesamorelin',     slug: 'tesamorelin',              sub: 'GHRH analog',                       mass: '10 mg', vials: 10, price: 695 },
+  { cat: 'gh-axis',   name: 'Tesamorelin',     slug: 'tesamorelin',              sub: 'GHRH analog',                       mass: '10 mg', vials: 10, price: 745 },
   { cat: 'gh-axis',   name: 'Sermorelin',      slug: 'sermorelin',               sub: 'GHRH (1-29) analog',                mass: '10 mg', vials: 10, price: 430 },
   { cat: 'gh-axis',   name: 'HCG',             slug: 'hcg',                      sub: 'Human Chorionic Gonadotropin',      mass: '10,000 IU', vials: 10, price: 595 },
   { cat: 'gh-axis',   name: 'HMG',             slug: 'hmg',                      sub: 'Human Menopausal Gonadotropin',     mass: '75 IU', vials: 10, price: 265 },
@@ -805,14 +811,14 @@ const PRODUCTS = [
   // ─── Longevity & Anti-Aging ──────────────────────────────────────────
   { cat: 'longevity', name: 'GHK-Cu',          slug: 'ghk-cu',                   sub: 'Copper tripeptide-1',               mass: '100 mg', vials: 10, price: 180 },
   { cat: 'longevity', name: 'SNAP-8',          slug: 'snap-8',                   sub: 'Topical octapeptide',               mass: '10 mg',  vials: 10, price: 165 },
-  { cat: 'longevity', name: 'Epithalon',       slug: 'epithalon',                sub: 'Telomerase-active tetrapeptide',    mass: '50 mg',  vials: 10, price: 510 },
-  { cat: 'longevity', name: 'Pinealon',        slug: 'pinealon',                 sub: 'Pineal tripeptide bioregulator',    mass: '20 mg',  vials: 10, price: 395 },
-  { cat: 'longevity', name: 'SS-31',           slug: 'ss-31',                    sub: 'Elamipretide, mitochondrial-targeted', mass: '10 mg', vials: 10, price: 330 },
-  { cat: 'longevity', name: 'SS-31',           slug: 'ss-31',                    sub: 'Elamipretide, mitochondrial-targeted', mass: '50 mg', vials: 10, price: 1110 },
+  { cat: 'longevity', name: 'Epithalon',       slug: 'epithalon',                sub: 'Telomerase-active tetrapeptide',    mass: '50 mg',  vials: 10, price: 645 },
+  { cat: 'longevity', name: 'Pinealon',        slug: 'pinealon',                 sub: 'Pineal tripeptide bioregulator',    mass: '20 mg',  vials: 10, price: 425 },
+  { cat: 'longevity', name: 'SS-31',           slug: 'ss-31',                    sub: 'Elamipretide, mitochondrial-targeted', mass: '10 mg', vials: 10, price: 375 },
+  { cat: 'longevity', name: 'SS-31',           slug: 'ss-31',                    sub: 'Elamipretide, mitochondrial-targeted', mass: '50 mg', vials: 10, price: 1315 },
 
   // ─── Cognition & Mood ────────────────────────────────────────────────
   { cat: 'cognition', name: 'Semax',           slug: 'semax',                    sub: 'Heptapeptide nootropic',            mass: '10 mg', vials: 10, price: 230 },
-  { cat: 'cognition', name: 'Selank',          slug: 'selank',                   sub: 'Synthetic anxiolytic peptide',      mass: '11 mg', vials: 10, price: 265 },
+  { cat: 'cognition', name: 'Selank',          slug: 'selank',                   sub: 'Synthetic anxiolytic peptide',      mass: '10 mg', vials: 10, price: 265 },
   { cat: 'cognition', name: 'Cerebrolysin',    slug: 'cerebrolysin',             sub: 'Neuropeptide preparation',          mass: '60 mg', vials: 6,  price: 395 },
   { cat: 'cognition', name: 'DSIP',            slug: 'dsip',                     sub: 'Delta-sleep-inducing peptide',      mass: '5 mg',  vials: 10, price: 165 },
 
