@@ -447,6 +447,34 @@ html, body {
   .catalog__delivery { text-align: left; }
 }
 
+/* ===== Catalog bottom CTA ===== */
+.catalog-cta {
+  display: flex; justify-content: center;
+  margin-top: 48px;
+  padding-top: 32px;
+  border-top: 1px solid var(--border-subtle);
+}
+.catalog-cta__btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 14px 28px;
+  border-radius: 8px;
+  background: var(--color-ember);
+  color: var(--text-inv);
+  border: 1px solid transparent;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 160ms ease, box-shadow 240ms ease, transform 160ms ease;
+}
+.catalog-cta__btn:hover {
+  background: var(--ember-bright);
+  box-shadow: 0 0 32px var(--ember-glow);
+  transform: translateY(-1px);
+}
+
 /* ===== Contact form ===== */
 .contact { max-width: 560px; margin-inline: auto; }
 .contact__header { text-align: center; margin-bottom: 40px; }
@@ -636,6 +664,10 @@ html, body {
         All compounds shipped as lyophilized powder, sealed under nitrogen.
       </p>
       <p class="catalog__delivery">Allow 2&ndash;4 weeks for delivery</p>
+    </div>
+
+    <div class="catalog-cta">
+      <a class="catalog-cta__btn" href="#contact">Contact us to place an order &rarr;</a>
     </div>
   </section>
 
