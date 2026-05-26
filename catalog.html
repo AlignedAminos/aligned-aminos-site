@@ -174,9 +174,56 @@ html, body {
   box-shadow: 0 0 8px var(--ember-glow);
 }
 
+/* ===== Category jump menu ===== */
+.catalog__jump {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: -24px 0 56px;
+  padding: 16px 20px;
+  background: var(--bg-elev-1);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+}
+.catalog__jump-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.catalog__jump-select {
+  flex: 1;
+  appearance: none; -webkit-appearance: none; -moz-appearance: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--text-1);
+  background: var(--bg-base);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  padding: 10px 40px 10px 14px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'><path d='M1 1L6 6L11 1' stroke='%23FF5A1F' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  transition: border-color 160ms ease, box-shadow 200ms ease;
+}
+.catalog__jump-select:focus {
+  outline: none;
+  border-color: var(--color-ember);
+  box-shadow: 0 0 0 3px var(--ember-muted);
+}
+@media (max-width: 560px) {
+  .catalog__jump { flex-direction: column; align-items: stretch; gap: 8px; }
+  .catalog__jump-select { width: 100%; }
+}
+
 /* ===== Category sections ===== */
 .catalog-section {
   margin-bottom: 64px;
+  scroll-margin-top: 100px;
 }
 .catalog-section:last-child { margin-bottom: 0; }
 
@@ -550,7 +597,7 @@ html, body {
   </a>
   <div class="nav__links">
     <a href="catalog.html" class="is-active">Catalog</a>
-    <a href="index.html#contact">Contact</a>
+    <a href="#contact">Contact</a>
   </div>
 </nav>
 
@@ -570,6 +617,14 @@ html, body {
         Laboratory research use only &middot; Not for human consumption
       </aside>
     </header>
+
+    <!-- Category jump menu -->
+    <div class="catalog__jump">
+      <label class="catalog__jump-label" for="catalog-jump">Jump to</label>
+      <select class="catalog__jump-select" id="catalog-jump" aria-label="Jump to category">
+        <option value="">All categories</option>
+      </select>
+    </div>
 
     <!-- JS-rendered catalog sections -->
     <div id="catalog-root"></div>
@@ -602,6 +657,10 @@ html, body {
           <input id="cf-email" name="email" type="email" required autocomplete="email" placeholder="you@domain.com" />
         </div>
         <div class="field">
+          <label for="cf-phone">Phone <span class="field__optional">&mdash; Optional</span></label>
+          <input id="cf-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(555) 555-5555" />
+        </div>
+        <div class="field">
           <label for="cf-instagram">Instagram handle <span class="field__optional">&mdash; Optional</span></label>
           <input id="cf-instagram" name="instagram" type="text" placeholder="@yourhandle" />
         </div>
@@ -628,6 +687,12 @@ html, body {
         <div class="field">
           <label for="cf-message">What's on your mind? <span class="field__optional">&mdash; Optional, but helpful</span></label>
           <textarea id="cf-message" name="message" rows="4" placeholder="A few words on what you're researching, your goals, anything you want us to know before we reply."></textarea>
+        </div>
+        <!-- Honeypot: invisible to humans, filled by bots, used to filter spam. -->
+        <div style="position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden;" aria-hidden="true">
+          <label>Don't fill this out if you're human:
+            <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" />
+          </label>
         </div>
         <button type="submit" class="contact__submit">Send &rarr;</button>
         <div class="contact__status" id="contact-status" role="status" aria-live="polite"></div>
@@ -779,7 +844,7 @@ function renderCatalog() {
     const cards = items.map(renderCard).join('');
 
     return `
-      <section class="catalog-section">
+      <section class="catalog-section" id="cat-${escapeHtml(cat.id)}">
         <header class="catalog-section__head">
           <h2 class="catalog-section__name">${escapeHtml(cat.name)}</h2>
           <span class="catalog-section__count">${count} compounds</span>
@@ -792,10 +857,33 @@ function renderCatalog() {
   root.innerHTML = html;
 }
 
+function renderJumpMenu() {
+  const sel = document.getElementById('catalog-jump');
+  if (!sel) return;
+
+  CATEGORIES.forEach(cat => {
+    if (!PRODUCTS.some(p => p.cat === cat.id)) return;
+    const opt = document.createElement('option');
+    opt.value = `cat-${cat.id}`;
+    opt.textContent = cat.name;
+    sel.appendChild(opt);
+  });
+
+  sel.addEventListener('change', (e) => {
+    const id = e.target.value;
+    if (!id) return;
+    const target = document.getElementById(id);
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    e.target.value = '';
+  });
+}
+
 renderCatalog();
+renderJumpMenu();
 
 /* ═════════════════════════════════════════════════════════════════════════
-   CONTACT FORM  —  mailto handler (identical to home page)
+   CONTACT FORM  —  Web3Forms handler (identical to home page, "(catalog)"
+   appended to subject so Jordan can tell which page generated the lead)
    ═════════════════════════════════════════════════════════════════════════ */
 
 (() => {
@@ -803,51 +891,80 @@ renderCatalog();
   const status = document.getElementById('contact-status');
   if (!form) return;
 
-  const RECIPIENT = 'Alignedaminos@proton.me';
-  const escape = (v) => (v || '').trim();
+  const ACCESS_KEY = 'ab1d26f3-dc9b-4689-aef2-ada34594cb0a';
+  const ENDPOINT   = 'https://api.web3forms.com/submit';
+  const FALLBACK   = 'Alignedaminos@proton.me';
 
-  form.addEventListener('submit', (e) => {
+  const trim = (v) => (v || '').trim();
+
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const name       = escape(form.name.value);
-    const email      = escape(form.email.value);
-    const instagram  = escape(form.instagram.value);
-    const source     = escape(form.source.value);
-    const experience = escape(form.experience.value);
-    const message    = escape(form.message.value);
+    const name       = trim(form.name.value);
+    const email      = trim(form.email.value);
+    const phone      = trim(form.phone.value);
+    const instagram  = trim(form.instagram.value);
+    const source     = trim(form.source.value);
+    const experience = trim(form.experience.value);
+    const message    = trim(form.message.value);
+    const botcheck   = form.botcheck && form.botcheck.checked;
 
     if (!name || !email) {
       status.innerHTML = 'Name and email are required.';
       return;
     }
 
-    const subject = `WEB LEAD: ${name} (catalog)`;
-    const bodyLines = [
-      `Name: ${name}`,
-      `Email: ${email}`,
-      `Instagram: ${instagram || '(not provided)'}`,
-      `How found us: ${source || '(not provided)'}`,
-      `Peptide experience: ${experience || '(not provided)'}`,
-      ``,
-      `Message:`,
-      message || '(none provided)',
-      ``,
-      `—`,
-      `Submitted from alignedaminos.com/catalog on ${new Date().toISOString().slice(0,16).replace('T',' ')} UTC`
-    ];
-    const body = bodyLines.join('\n');
+    if (botcheck) {
+      status.innerHTML = 'Thanks — your message is on its way.';
+      form.reset();
+      return;
+    }
 
-    const mailto =
-      `mailto:${RECIPIENT}` +
-      `?subject=${encodeURIComponent(subject)}` +
-      `&body=${encodeURIComponent(body)}`;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalLabel = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = 'Sending…';
+    status.innerHTML = '';
 
-    window.location.href = mailto;
+    const payload = {
+      access_key: ACCESS_KEY,
+      subject: `WEB LEAD: ${name} (catalog)`,
+      from_name: 'Aligned Aminos Website',
+      botcheck: '',
+      name: name,
+      email: email,
+      phone: phone || '(not provided)',
+      instagram: instagram || '(not provided)',
+      how_found_us: source || '(not provided)',
+      peptide_experience: experience || '(not provided)',
+      message: message || '(none provided)',
+      submitted_from: `${window.location.host}${window.location.pathname} on ${new Date().toISOString().slice(0,16).replace('T',' ')} UTC`,
+    };
 
-    status.innerHTML =
-      'Your email app should be opening now with the message ready to send. ' +
-      'If nothing happened, copy your message and send to ' +
-      `<a href="mailto:${RECIPIENT}">${RECIPIENT}</a>.`;
+    try {
+      const res = await fetch(ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        status.innerHTML = 'Thanks — your message is on its way. We respond within 24 hours.';
+        form.reset();
+      } else {
+        status.innerHTML =
+          "Hm, that didn't go through. Please try again, or email " +
+          `<a href="mailto:${FALLBACK}">${FALLBACK}</a> directly.`;
+      }
+    } catch (err) {
+      status.innerHTML =
+        "Couldn't reach the server. Check your connection and try again, " +
+        `or email <a href="mailto:${FALLBACK}">${FALLBACK}</a> directly.`;
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalLabel;
+    }
   });
 })();
 </script>
