@@ -4,6 +4,9 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Aligned Aminos — Research-Grade Peptides</title>
+<!-- Cloudflare Web Analytics — privacy-friendly, no cookie banner. -->
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js"
+        data-cf-beacon='{"token": "b39fa658d9264c73aea514108b6b6b6c"}'></script>
 <style>
 /* ===== Tokens — EMBER palette ===== */
 :root {
@@ -1103,6 +1106,14 @@ p.lede {
           </select>
         </div>
 
+        <div class="field" id="cf-referrer-field" hidden>
+          <label for="cf-referrer">
+            Who referred you?
+            <span class="field__optional">— Their name or referral code</span>
+          </label>
+          <input id="cf-referrer" name="referrer" type="text" placeholder="e.g. Jane Smith or KELLE-004" />
+        </div>
+
         <div class="field">
           <label for="cf-experience">
             Where are you at with peptides?
@@ -1169,6 +1180,17 @@ p.lede {
 
   const trim = (v) => (v || '').trim();
 
+  // Reveal "Who referred you?" only when source = Referral / Word of mouth.
+  const sourceSelect   = document.getElementById('cf-source');
+  const referrerField  = document.getElementById('cf-referrer-field');
+  const referrerInput  = document.getElementById('cf-referrer');
+  const syncReferrer = () => {
+    const show = sourceSelect && sourceSelect.value === 'Referral / Word of mouth';
+    if (referrerField) referrerField.hidden = !show;
+    if (!show && referrerInput) referrerInput.value = '';
+  };
+  if (sourceSelect) sourceSelect.addEventListener('change', syncReferrer);
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -1177,6 +1199,7 @@ p.lede {
     const phone      = trim(form.phone.value);
     const instagram  = trim(form.instagram.value);
     const source     = trim(form.source.value);
+    const referrer   = trim(form.referrer ? form.referrer.value : '');
     const experience = trim(form.experience.value);
     const message    = trim(form.message.value);
     const botcheck   = form.botcheck && form.botcheck.checked;
@@ -1209,6 +1232,7 @@ p.lede {
       phone: phone || '(not provided)',
       instagram: instagram || '(not provided)',
       how_found_us: source || '(not provided)',
+      referred_by: referrer || '(not provided)',
       peptide_experience: experience || '(not provided)',
       message: message || '(none provided)',
       submitted_from: `${window.location.host}${window.location.pathname} on ${new Date().toISOString().slice(0,16).replace('T',' ')} UTC`,
@@ -1225,6 +1249,7 @@ p.lede {
       if (data.success) {
         status.innerHTML = 'Thanks — your message is on its way. We respond within 24 hours.';
         form.reset();
+        syncReferrer();
       } else {
         status.innerHTML =
           "Hm, that didn't go through. Please try again, or email " +
