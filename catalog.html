@@ -858,6 +858,36 @@ html, body {
 .cart-foot__row { display: flex; gap: 10px; }
 .cart-foot__row .cart-btn { width: auto; flex: 1; }
 
+/* Referral code box (checkout details foot) */
+.cart-referral { margin-bottom: 14px; }
+.cart-referral__label {
+  display: block; margin-bottom: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--text-3);
+}
+.cart-referral__row { display: flex; gap: 8px; }
+.cart-referral__row input { flex: 1; font-size: 14px; padding: 10px 12px; }
+.cart-referral__row .cart-btn { width: auto; flex: none; padding: 10px 16px; font-size: 13px; }
+.cart-referral__msg { margin-top: 6px; font-family: var(--font-mono); font-size: 11px; line-height: 1.5; }
+.cart-referral__msg.is-ok  { color: #46c46a; }
+.cart-referral__msg.is-err { color: var(--ember); }
+.cart-subtotal--disc .cart-subtotal__label { text-transform: none; letter-spacing: 0.03em; font-size: 11px; }
+.cart-subtotal--disc .cart-subtotal__value { color: #46c46a; font-size: 14px; }
+.cart-subtotal--total { margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--border-subtle); }
+
+/* Venmo pay button (success screen) */
+.venmo-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 14px 20px; margin: 4px 0 8px;
+  border-radius: 8px; text-decoration: none;
+  background: #008CFF; color: #fff;
+  font-family: var(--font-sans); font-size: 15px; font-weight: 700; letter-spacing: 0.01em;
+  transition: background-color 160ms ease, box-shadow 240ms ease, transform 160ms ease;
+}
+.venmo-btn:hover { background: #0a78d0; box-shadow: 0 0 24px rgba(0,140,255,0.40); transform: translateY(-1px); }
+.venmo-sub { margin: 0 0 16px; font-family: var(--font-mono); font-size: 10px; line-height: 1.55; color: var(--text-3); text-align: center; }
+
 /* Checkout (order details) fields inside drawer */
 .cart-form { display: flex; flex-direction: column; gap: 14px; }
 .cart-form__grid {
@@ -1002,7 +1032,7 @@ html, body {
     </div>
 
     <div class="catalog-cta">
-      <a class="catalog-cta__btn" href="#contact">Contact us to place an order &rarr;</a>
+      <a class="catalog-cta__btn" href="#contact">Questions? Get in touch &rarr;</a>
     </div>
   </section>
 
@@ -1011,7 +1041,7 @@ html, body {
     <div class="contact">
       <header class="contact__header">
         <span class="contact__eyebrow">Inquire</span>
-        <h2 class="contact__title">Start a conversation.<br />We respond personally.</h2>
+        <h2 class="contact__title">Have questions, or looking to start a conversation?<br />We respond personally.</h2>
       </header>
 
       <form class="contact__form" id="contact-form" novalidate>
@@ -1164,13 +1194,29 @@ html, body {
       </form>
     </div>
     <div class="cart-foot">
+      <div class="cart-referral">
+        <label class="cart-referral__label" for="of-referral">Referral code <span class="field__optional">&mdash; Optional</span></label>
+        <div class="cart-referral__row">
+          <input id="of-referral" name="referral" type="text" autocomplete="off" placeholder="Enter code" />
+          <button type="button" class="cart-btn cart-btn--ghost" id="referral-apply">Apply</button>
+        </div>
+        <div class="cart-referral__msg" id="referral-msg" role="status" aria-live="polite"></div>
+      </div>
       <div class="cart-subtotal">
         <span class="cart-subtotal__label">Subtotal</span>
         <span class="cart-subtotal__value" id="cart-subtotal-2">$0</span>
       </div>
+      <div class="cart-subtotal cart-subtotal--disc" id="cart-discount-row" hidden>
+        <span class="cart-subtotal__label">Referral <span id="cart-discount-code"></span> (10% off)</span>
+        <span class="cart-subtotal__value" id="cart-discount-2">-$0</span>
+      </div>
+      <div class="cart-subtotal cart-subtotal--total" id="cart-total-row" hidden>
+        <span class="cart-subtotal__label">Total</span>
+        <span class="cart-subtotal__value" id="cart-total-2">$0</span>
+      </div>
       <p class="cart-foot__note">
-        Submitting sends your order to Aligned Aminos. No payment is collected now &mdash;
-        we reply within 24 hours to confirm and arrange payment.
+        Submitting sends your order to Aligned Aminos. On the next screen you can pay
+        by Venmo to lock it in &mdash; we confirm stock and shipping once payment arrives.
       </p>
       <div class="cart-foot__row">
         <button type="button" class="cart-btn cart-btn--ghost" id="order-back">&larr; Back</button>
@@ -1185,7 +1231,9 @@ html, body {
       <div class="cart-receipt">
         <span class="cart-receipt__icon" aria-hidden="true">&check;</span>
         <h3>Order received.</h3>
-        <p id="order-success-msg">Thanks &mdash; we've got your order. We'll email you within 24 hours to confirm stock, add shipping, and arrange payment. No payment was taken.</p>
+        <p id="order-success-msg">Thanks &mdash; we've got your order. Pay by Venmo below to lock it in, then we'll confirm payment and shipping. If anything's out of stock, we'll refund or swap it.</p>
+        <a class="venmo-btn" id="venmo-pay" href="#" target="_blank" rel="noopener" hidden>Pay with Venmo</a>
+        <p class="venmo-sub" id="venmo-sub" hidden>Opens Venmo. Payment goes to Aligned Strength (our parent account) &mdash; keep the prefilled note so we can match your order.</p>
         <div class="cart-receipt__items" id="order-receipt"></div>
         <p style="font-family:var(--font-mono); font-size:11px; color:var(--text-3);">
           This is your copy &mdash; print or save it for your records.
@@ -1487,6 +1535,19 @@ renderJumpMenu();
   const ENDPOINT    = 'https://api.web3forms.com/submit';
   const FALLBACK    = 'Alignedaminos@proton.me';
 
+  // ----- Referral codes -----------------------------------------------------
+  // Each approved referrer gets their OWN code (case-insensitive). A valid code
+  // takes 10% off the order. EDIT THIS LIST with the real codes from Kelley
+  // before go-live. Format:  'CODE': 'Referrer label (for your records)'.
+  // Note: anything here is visible in the page source, so codes aren't secret.
+  const DISCOUNT_RATE  = 0.10;
+  const REFERRAL_CODES = {
+    'JORDAN10': 'Jordan',
+    'KELLEY10': 'Kelley',
+  };
+  const VENMO_HANDLE = 'Alignedstrength'; // parent-brand Venmo account
+  let appliedCode = null;                 // matched code (uppercased) or null
+
   // Build a lookup of the current catalog keyed by slug|mass (mass disambiguates
   // products that share a slug, e.g. SS-31 10 mg vs 50 mg).
   const BY_KEY = {};
@@ -1513,6 +1574,69 @@ renderJumpMenu();
   }
   const count = () => cart.reduce((s, l) => s + l.qty, 0);
   const subtotal = () => cart.reduce((s, l) => s + (BY_KEY[l.key].price * l.qty), 0);
+
+  // Money with cents only when needed ($415 stays clean; $373.50 shows cents).
+  const fmtD = (n) => {
+    const r = Math.round(Number(n) * 100) / 100;
+    return '$' + r.toLocaleString('en-US', { minimumFractionDigits: r % 1 === 0 ? 0 : 2, maximumFractionDigits: 2 });
+  };
+  const discountAmt = () => (appliedCode ? Math.round(subtotal() * DISCOUNT_RATE * 100) / 100 : 0);
+  const grandTotal  = () => subtotal() - discountAmt();
+
+  // Unique web-order reference: AA-YYMMDD-XXXX. No backend/shared counter exists
+  // (static site), so this can't be the generator's sequential AA-NNNN — instead
+  // it's date + 4 random chars (ambiguous chars omitted) so it's collision-proof
+  // across browsers/devices. It rides the Venmo note, the order email subject,
+  // and the payload, so the payment, the email, and the CRM row all share one ref.
+  function makeOrderRef() {
+    const d = new Date();
+    const yy = String(d.getFullYear()).slice(2);
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I
+    let suf = '';
+    for (let i = 0; i < 4; i++) suf += chars[Math.floor(Math.random() * chars.length)];
+    return `AA-${yy}${mm}${dd}-${suf}`;
+  }
+
+  /* ----- Referral code apply ----- */
+  function applyReferral() {
+    const input = $('of-referral');
+    const msg   = $('referral-msg');
+    const raw   = (input.value || '').trim().toUpperCase();
+    if (!raw) {
+      appliedCode = null;
+      msg.textContent = ''; msg.className = 'cart-referral__msg';
+    } else if (REFERRAL_CODES[raw]) {
+      appliedCode = raw;
+      msg.textContent = 'Code applied — 10% off your order.';
+      msg.className = 'cart-referral__msg is-ok';
+    } else {
+      appliedCode = null;
+      msg.textContent = "That code isn't valid — your order stands at full price.";
+      msg.className = 'cart-referral__msg is-err';
+    }
+    renderTotals();
+  }
+
+  /* ----- Totals (subtotals + optional discount/total rows) ----- */
+  function renderTotals() {
+    const sub = subtotal();
+    $('cart-subtotal').textContent   = fmt(sub);
+    $('cart-subtotal-2').textContent = fmt(sub);
+    const discRow  = $('cart-discount-row');
+    const totalRow = $('cart-total-row');
+    if (appliedCode && sub > 0) {
+      $('cart-discount-2').textContent   = '-' + fmtD(discountAmt());
+      $('cart-discount-code').textContent = appliedCode;
+      $('cart-total-2').textContent      = fmtD(grandTotal());
+      discRow.hidden = false;
+      totalRow.hidden = false;
+    } else {
+      discRow.hidden = true;
+      totalRow.hidden = true;
+    }
+  }
 
   /* ----- Badge ----- */
   function updateBadge() {
@@ -1590,9 +1714,7 @@ renderJumpMenu();
       `;
     }).join('');
 
-    const sub = fmt(subtotal());
-    $('cart-subtotal').textContent = sub;
-    $('cart-subtotal-2').textContent = sub;
+    renderTotals();
   }
 
   /* ----- Cart mutations ----- */
@@ -1643,6 +1765,8 @@ renderJumpMenu();
   /* ----- Navigation between views ----- */
   $('cart-continue').addEventListener('click', () => { if (cart.length) showView('details'); });
   $('order-back').addEventListener('click', () => showView('list'));
+  $('referral-apply').addEventListener('click', applyReferral);
+  $('of-referral').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); applyReferral(); } });
   $('order-done').addEventListener('click', closeDrawer);
   $('order-print').addEventListener('click', () => window.print());
 
@@ -1662,12 +1786,38 @@ renderJumpMenu();
       return `${l.qty} x ${p.name} (${p.mass}, ${vials}-vial box) @ ${fmt(p.price)}/box = ${fmt(p.price * l.qty)}`;
     }).join('\n');
   }
-  function receiptHtml() {
-    const rows = cart.map(l => {
+  function receiptHtml(orderRef) {
+    const refRow = orderRef
+      ? `<div class="ln" style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border-subtle);"><span>Order ref</span><span>${escapeHtml(orderRef)}</span></div>`
+      : '';
+    const rows = refRow + cart.map(l => {
       const p = BY_KEY[l.key];
       return `<div class="ln"><span>${l.qty}&times; ${escapeHtml(p.name)} (${escapeHtml(p.mass)})</span><span>${fmt(p.price * l.qty)}</span></div>`;
     }).join('');
-    return rows + `<div class="ln sub"><span>Subtotal (excl. shipping)</span><span>${fmt(subtotal())}</span></div>`;
+    if (appliedCode && subtotal() > 0) {
+      return rows +
+        `<div class="ln"><span>Subtotal (free shipping)</span><span>${fmt(subtotal())}</span></div>` +
+        `<div class="ln"><span>Referral ${escapeHtml(appliedCode)} (10% off)</span><span>-${fmtD(discountAmt())}</span></div>` +
+        `<div class="ln sub"><span>Order total</span><span>${fmtD(grandTotal())}</span></div>`;
+    }
+    return rows + `<div class="ln sub"><span>Order total (free shipping)</span><span>${fmt(subtotal())}</span></div>`;
+  }
+
+  /* ----- Venmo pay button (success screen) ----- */
+  function setupVenmoButton(orderRef, amount) {
+    const btn = $('venmo-pay');
+    const sub = $('venmo-sub');
+    if (!btn) return;
+    const amt  = (Math.round(Number(amount) * 100) / 100).toFixed(2);
+    const note = `Aligned Aminos ${orderRef}`;
+    btn.href =
+      `https://venmo.com/?txn=pay&audience=private` +
+      `&recipients=${encodeURIComponent(VENMO_HANDLE)}` +
+      `&amount=${amt}` +
+      `&note=${encodeURIComponent(note)}`;
+    btn.textContent = `Pay ${fmtD(amount)} with Venmo`;
+    btn.hidden = false;
+    if (sub) sub.hidden = false;
   }
 
   /* ----- Submit the order ----- */
@@ -1702,6 +1852,14 @@ renderJumpMenu();
     // Honeypot: silently fake success for bots.
     if (botcheck) { showView('success'); return; }
 
+    // Re-validate the referral code from the field (covers typing without clicking
+    // Apply). An invalid code just means no discount — it never blocks the order.
+    applyReferral();
+    const referralCode = appliedCode || '';
+    const discount     = discountAmt();
+    const total        = grandTotal();
+    const orderRef     = makeOrderRef();
+
     const submitBtn = $('order-submit');
     const originalLabel = submitBtn.innerHTML;
     submitBtn.disabled = true;
@@ -1711,13 +1869,38 @@ renderJumpMenu();
     const shipBlock =
       `${name}\n${address}${address2 ? '\n' + address2 : ''}\n${city}, ${state} ${zip}\n${country}`;
 
+    // Machine-readable order payload so the invoice generator can build the PDF
+    // with one command (New-Invoice.ps1 -FromClipboard) — no retyping. Prices are
+    // pulled live from the catalog here, so stale localStorage values can't sneak in.
+    const invoicePayload = {
+      type: 'aligned-aminos-order',
+      v: 1,
+      ref: orderRef,
+      customer: { name, email, phone, address, address2, city, state, zip, country },
+      items: cart.map(l => {
+        const p = BY_KEY[l.key];
+        return { name: p.name, mass: p.mass, vials: p.vials || 10, slug: p.slug, qty: l.qty, unit_price: p.price };
+      }),
+      referral_code: referralCode,
+      discount: discount,
+      notes: notes || ''
+    };
+    const payloadBlock =
+      'BEGIN INVOICE PAYLOAD\n' +
+      JSON.stringify(invoicePayload, null, 2) +
+      '\nEND INVOICE PAYLOAD';
+
+    const totalsText = referralCode
+      ? `Subtotal (free shipping): ${fmt(subtotal())}\nReferral ${referralCode} (10% off): -${fmtD(discount)}\nOrder total: ${fmtD(total)}`
+      : `Order total (free shipping): ${fmt(subtotal())}`;
+
     const message =
-`ORDER REQUEST (no payment collected online)
+`WEB ORDER ${orderRef}
 
 ITEMS
 ${orderLinesText()}
 
-Subtotal (excl. shipping): ${fmt(subtotal())}
+${totalsText}
 Total boxes: ${count()}
 
 SHIP TO
@@ -1731,19 +1914,38 @@ NOTES
 ${notes || '(none)'}
 
 RUO acknowledged: Yes
-— Final invoice including shipping to be sent by Aligned Aminos. Arrange payment separately.`;
+
+PAYMENT (customer pays online at checkout)
+The customer was shown a "Pay with Venmo" button for ${fmtD(total)},
+note prefilled "Aligned Aminos ${orderRef}". Check the @${VENMO_HANDLE}
+Venmo for an incoming payment with that ref. Then: confirm stock and ship.
+No invoice needs to be generated for an order paid online.
+
+------------------------------------------------------------
+ONLY IF THEY DID NOT PAY ONLINE - generate an invoice:
+Copy everything between the two markers below, then run:
+  .\\New-Invoice.ps1 -FromClipboard
+The invoice reuses ref ${orderRef} (no new number) and includes the
+Venmo button. Forward that PDF to the customer.
+------------------------------------------------------------
+
+${payloadBlock}`;
 
     const payload = {
       access_key: ACCESS_KEY,
-      subject: `WEB ORDER: ${name} (${count()} boxes, ${fmt(subtotal())})`,
+      subject: `WEB ORDER ${orderRef}: ${name} (${count()} boxes, ${fmtD(total)})`,
       from_name: 'Aligned Aminos Website',
       botcheck: '',
+      order_ref: orderRef,
       name: name,
       email: email,
       phone: phone,
       ship_to: shipBlock,
       order_items: orderLinesText(),
-      subtotal_excl_shipping: fmt(subtotal()),
+      subtotal_free_shipping: fmt(subtotal()),
+      referral_code: referralCode || '(none)',
+      discount_amount: referralCode ? '-' + fmtD(discount) : '$0',
+      order_total: fmtD(total),
       total_boxes: count(),
       notes: notes || '(none)',
       ruo_acknowledged: 'Yes',
@@ -1759,13 +1961,19 @@ RUO acknowledged: Yes
       });
       const data = await res.json();
       if (data.success) {
-        $('order-receipt').innerHTML = receiptHtml();
+        // Build the success UI from the live order BEFORE clearing the cart.
+        $('order-receipt').innerHTML = receiptHtml(orderRef);
+        setupVenmoButton(orderRef, total);
         showView('success');
         cart = [];
+        appliedCode = null;
         saveCart();
         renderLines();
         form.reset();
         f.country.value = 'United States';
+        $('of-referral').value = '';
+        $('referral-msg').textContent = '';
+        $('referral-msg').className = 'cart-referral__msg';
       } else {
         status.innerHTML =
           "Hm, that didn't go through. Please try again, or email " +
