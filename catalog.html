@@ -1257,7 +1257,7 @@ select.pc-size option { background: var(--bg-3); color: var(--text-1); }
         <h3>Order received.</h3>
         <p id="order-success-msg">Thanks &mdash; we've got your order. Pay by Venmo below to lock it in, then we'll confirm payment and shipping. If anything's out of stock, we'll refund or swap it.</p>
         <a class="venmo-btn" id="venmo-pay" href="#" target="_blank" rel="noopener" hidden>Pay with Venmo</a>
-        <p class="venmo-sub" id="venmo-sub" hidden>Opens Venmo. Payment goes to Aligned Strength (our parent account) &mdash; keep the prefilled note so we can match your order.</p>
+        <p class="venmo-sub" id="venmo-sub" hidden>Opens Venmo &mdash; keep the prefilled note so we can match your order.</p>
         <div class="cart-receipt__items" id="order-receipt"></div>
         <p style="font-family:var(--font-mono); font-size:11px; color:var(--text-3);">
           This is your copy &mdash; print or save it for your records.
@@ -1717,16 +1717,96 @@ renderJumpMenu();
     'JORDAN10': 'Jordan',
     'KELLEY10': 'Kelley',
   };
-  const VENMO_HANDLE = 'Alignedstrength'; // parent-brand Venmo account
+  const VENMO_HANDLE = 'vagabondmuscle'; // temp: switched from Alignedstrength, switch back in time
   let appliedCode = null;                 // matched code (uppercased) or null
 
   // Build a lookup of the current catalog keyed by slug|mass (mass disambiguates
   // products that share a slug, e.g. SS-31 10 mg vs 50 mg).
+  // Supplier catalogue numbers (Cat.No on Jordan's wholesale sheet), keyed by
+  // slug|mass. Surfaced on the order email so Kelley can place the supplier
+  // order without cross-referencing the sheet. Codes are the supplier's, as-is.
+  const CODES = {
+    // Metabolic & GLP-1
+    'tirzepatide|5 mg':'TR5','tirzepatide|10 mg':'TR10','tirzepatide|15 mg':'TR15','tirzepatide|20 mg':'TR20','tirzepatide|30 mg':'TR30','tirzepatide|40 mg':'TR40','tirzepatide|50 mg':'TR50','tirzepatide|60 mg':'TR60','tirzepatide|100 mg':'TR100','tirzepatide|120 mg':'TR120',
+    'retatrutide|5 mg':'RT5','retatrutide|10 mg':'RT10','retatrutide|15 mg':'RT15','retatrutide|20 mg':'RT20','retatrutide|30 mg':'RT30','retatrutide|40 mg':'RT40','retatrutide|50 mg':'RT50','retatrutide|60 mg':'RT60',
+    'mots-c|10 mg':'MS10','mots-c|40 mg':'MS40',
+    'aod-9604|5 mg':'5AD','aod-9604|10 mg':'10AD',
+    '5-amino-1mq|5 mg':'5:00 AM','5-amino-1mq|10 mg':'10:00 AM','5-amino-1mq|50 mg':'50AM',
+    'semaglutide|10 mg':'SM10','semaglutide|20 mg':'SM20','semaglutide|30 mg':'SM30',
+    'liraglutide|5 mg':'LL5','liraglutide|10 mg':'LL10','liraglutide|30 mg':'LL30',
+    'cagrilintide|5 mg':'CGL5','cagrilintide|10 mg':'CGL10','cagrilintide|20 mg':'CGL20',
+    'cagrisema|10 mg':'CS10',
+    'mazdutide|5 mg':'MDT5','mazdutide|10 mg':'MDT10',
+    'survodutide|10 mg':'SUR10',
+    'retatrutide-cagrilintide-blend|10 mg':'RC10',
+    // Recovery & Repair
+    'bpc-157|5 mg':'BC5','bpc-157|10 mg':'BC10','bpc-157|20 mg':'BC20',
+    'tb-500|5 mg':'BT5','tb-500|10 mg':'BT10','tb-500|20 mg':'BT20',
+    'kpv|5 mg':'KP5','kpv|10 mg':'KP10',
+    'bpc-157-tb-500-blend|10 mg':'BB10','bpc-157-tb-500-blend|20 mg':'BB20',
+    'glow|70 mg':'BBG70',
+    'klow|80 mg':'KLOW',
+    'll-37|5 mg':'375',
+    // Growth & GH Axis
+    'igf-1-lr3|0.1 mg':'IG01','igf-1-lr3|1 mg':'IG1',
+    'ipamorelin|5 mg':'IP5','ipamorelin|10 mg':'IP10',
+    'cjc-1295-ipamorelin-blend|10 mg':'CP10','cjc-1295-ipamorelin-blend|20 mg':'CP20',
+    'tesamorelin|5 mg':'TSM5','tesamorelin|10 mg':'TSM10','tesamorelin|20 mg':'TSM20',
+    'sermorelin|5 mg':'SMO5','sermorelin|10 mg':'SMO10',
+    'hcg|5,000 IU':'G5K','hcg|10,000 IU':'G10K',
+    'hmg|75 IU':'G75',
+    'cjc-1295-no-dac|5 mg':'CND5','cjc-1295-no-dac|10 mg':'CND10',
+    'cjc-1295-dac|5 mg':'CD5','cjc-1295-dac|10 mg':'CD10',
+    'tesamorelin-ipamorelin-blend|18 mg':'T118',
+    'ghrp-2|5 mg':'G25','ghrp-2|10 mg':'G210',
+    'ghrp-6|5 mg':'G65','ghrp-6|10 mg':'G610',
+    'hexarelin|2 mg':'HX2','hexarelin|5 mg':'HX5',
+    'hgh-fragment-176-191|2 mg':'FR2','hgh-fragment-176-191|5 mg':'FR5','hgh-fragment-176-191|10 mg':'FR10',
+    'mgf|2 mg':'FM2',
+    'peg-mgf|2 mg':'FMP2',
+    'gonadorelin|2 mg':'GND2',
+    // Longevity & Anti-Aging
+    'ghk-cu|50 mg':'CU50','ghk-cu|100 mg':'CU100',
+    'snap-8|10 mg':'NP810',
+    'epithalon|10 mg':'ET10','epithalon|50 mg':'ET50',
+    'pinealon|5 mg':'PIN5','pinealon|10 mg':'PIN10','pinealon|20 mg':'PIN20',
+    'ss-31|10 mg':'2510','ss-31|50 mg':'2550',
+    'ghk-basic|50 mg':'GH50',
+    'ahk-cu|100 mg':'AU100',
+    'nad-plus|500 mg':'NJ500','nad-plus|1000 mg':'NJ1000',
+    'thymalin|10 mg':'TY10',
+    'n-acetyl-epitalon-amidate|5 mg':'NET5',
+    // Cognition & Mood
+    'semax|5 mg':'XA5','semax|10 mg':'XA10',
+    'selank|5 mg':'SK5','selank|10 mg':'SK10',
+    'cerebrolysin|60 mg':'C60',
+    'dsip|5 mg':'DS5','dsip|10 mg':'DS10','dsip|15 mg':'DS15',
+    'semax-selank-blend|20 mg':'XS20',
+    'pe-22-28|10 mg':'PE10',
+    'melatonin|10 mg':'MT10',
+    'adamax|5 mg':'AD5',
+    // Hormones, Sexual Health & Misc
+    'thymosin-alpha-1|5 mg':'TA5','thymosin-alpha-1|10 mg':'TA10',
+    'pt-141|10 mg':'P41',
+    'melanotan-ii|10 mg':'ML10',
+    'b12-methylcobalamin|10 ml':'B12',
+    'kisspeptin-10|5 mg':'KS5','kisspeptin-10|10 mg':'KS10',
+    'melanotan-1|5 mg':'MT1',
+    // Aesthetics & Lipolytics
+    'lemon-bottle|10 ml':'柠檬瓶',
+    'lipo-c|10 ml':'LC120',
+    'lipo-b|10 ml':'LC216',
+    'l-carnitine|10 ml':'LC500',
+    // Accessories
+    'bac-water|10 ml':'WA10',
+  };
+
   const BY_KEY = {};
   PRODUCTS.forEach(p => p.variants.forEach(v => {
     BY_KEY[p.slug + '|' + v.mass] = {
       name: p.name, slug: p.slug, sub: p.sub, cat: p.cat,
       mass: v.mass, vials: v.vials || 10, price: v.price,
+      code: CODES[p.slug + '|' + v.mass] || '',
     };
   }));
 
@@ -1960,7 +2040,8 @@ renderJumpMenu();
     return cart.map(l => {
       const p = BY_KEY[l.key];
       const vials = p.vials || 10;
-      return `${l.qty} x ${p.name} (${p.mass}, ${vials}-vial box) @ ${fmt(p.price)}/box = ${fmt(p.price * l.qty)}`;
+      const codeTag = p.code ? `[${p.code}] ` : '';
+      return `${codeTag}${l.qty} x ${p.name} (${p.mass}, ${vials}-vial box) @ ${fmt(p.price)}/box = ${fmt(p.price * l.qty)}`;
     }).join('\n');
   }
   function receiptHtml(orderRef) {
@@ -2056,7 +2137,7 @@ renderJumpMenu();
       customer: { name, email, phone, address, address2, city, state, zip, country },
       items: cart.map(l => {
         const p = BY_KEY[l.key];
-        return { name: p.name, mass: p.mass, vials: p.vials || 10, slug: p.slug, qty: l.qty, unit_price: p.price };
+        return { name: p.name, code: p.code || '', mass: p.mass, vials: p.vials || 10, slug: p.slug, qty: l.qty, unit_price: p.price };
       }),
       referral_code: referralCode,
       discount: discount,
