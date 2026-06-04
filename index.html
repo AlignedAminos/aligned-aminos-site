@@ -165,6 +165,32 @@ html, body {
 }
 .nav__links a:hover { color: var(--ember); }
 
+/* Cart toggle (links to catalog drawer) */
+.cart-toggle {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-1) !important;
+  background: var(--ember-muted);
+  border: 1px solid rgba(255,90,31,0.30);
+  border-radius: 9999px;
+  text-decoration: none;
+  transition: border-color 160ms ease, box-shadow 240ms ease;
+}
+.cart-toggle:hover { border-color: var(--ember); box-shadow: 0 0 16px var(--ember-glow-lg); color: var(--text-1) !important; }
+.cart-toggle__count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 18px; height: 18px; padding: 0 5px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0;
+  color: var(--text-inv);
+  background: var(--ember);
+  border-radius: 9999px;
+}
+.cart-toggle__count[data-empty="true"] { background: var(--bg-3); color: var(--text-3); }
+
 /* Layout */
 .wrap {
   max-width: 1200px;
@@ -850,6 +876,9 @@ p.lede {
   <div class="nav__links">
     <a href="catalog.html">Catalog</a>
     <a href="#contact">Contact</a>
+    <a class="cart-toggle" href="catalog.html#cart" aria-label="View your order">
+      Order <span class="cart-toggle__count" id="cart-count" data-empty="true">0</span>
+    </a>
   </div>
 </nav>
 
@@ -1264,6 +1293,21 @@ p.lede {
       submitBtn.innerHTML = originalLabel;
     }
   });
+})();
+</script>
+
+<script>
+/* Sync the nav order badge from the saved cart (set on the catalog page). */
+(() => {
+  const el = document.getElementById('cart-count');
+  if (!el) return;
+  let n = 0;
+  try {
+    const raw = JSON.parse(localStorage.getItem('aa_order_v1') || '[]');
+    if (Array.isArray(raw)) n = raw.reduce((s, l) => s + (parseInt(l && l.qty, 10) || 0), 0);
+  } catch (e) {}
+  el.textContent = n;
+  el.dataset.empty = n === 0 ? 'true' : 'false';
 })();
 </script>
 

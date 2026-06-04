@@ -88,6 +88,19 @@ Right now every "Data sheet" button goes to `#` (nowhere). When you have real PD
 
 ---
 
+## How orders work (the cart)
+
+Customers build an order on the catalog using the **Add to order** button on each card, then open the **Order** drawer (the button in the nav, with the count badge). They step quantities up/down, hit **Continue to order details**, fill in contact info + shipping address, check the research-use-only acknowledgment, and submit.
+
+**No payment happens on the site.** Submitting the order does two things:
+
+1. **Jordan gets an email.** The full itemized order is emailed to `Alignedaminos@proton.me` (same inbox as contact-form leads) with the subject `WEB ORDER: [Name] (N boxes, $total)`. The body lists every product, mass, box size, quantity, line price, the subtotal, and the customer's full contact + shipping details. Jordan reads it, confirms stock, adds shipping, and contacts the customer to arrange payment — then generates the invoice with `New-Invoice.ps1`.
+2. **The customer sees a printable confirmation** on screen (order summary + "we'll email you to confirm"). They do **not** get an automatic email copy yet — that needs a paid Web3Forms upgrade. The form already collects their email, so flipping that on later is a dashboard toggle, no code change.
+
+Prices in the order email are re-read live from the `PRODUCTS` list at submit time, so a price change here always wins — a customer can never submit a stale price.
+
+---
+
 ## What NOT to do
 
 - **Don't change** the names of fields (`cat`, `name`, `sub`, `mass`, `price`). The render code expects those exact names.

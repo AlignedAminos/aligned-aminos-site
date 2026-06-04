@@ -373,14 +373,51 @@ html, body {
 
 .product-card__footer {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  flex-direction: column;
+  gap: 12px;
   padding-top: 12px;
   border-top: 1px solid var(--border-default);
 }
 .product-card__price {
   display: flex; align-items: baseline; gap: 3px;
+}
+.product-card__actions {
+  display: flex;
+  gap: 8px;
+}
+.pc-btn {
+  flex: 1;
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  padding: 9px 10px;
+  border-radius: 6px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 240ms ease, transform 160ms ease;
+}
+.pc-btn--ghost {
+  background: transparent;
+  color: var(--text-1);
+  border-color: var(--border-strong);
+}
+.pc-btn--ghost:hover { border-color: var(--color-ember); color: var(--color-ember); }
+.pc-btn--primary {
+  background: var(--color-ember);
+  color: var(--text-inv);
+}
+.pc-btn--primary:hover {
+  background: var(--color-ember-gold);
+  box-shadow: 0 0 16px var(--ember-glow);
+  transform: translateY(-1px);
+}
+.pc-btn--added {
+  background: var(--ember-deep);
+  color: var(--text-1);
 }
 .price__amount {
   font-family: var(--font-mono);
@@ -610,6 +647,290 @@ html, body {
   text-align: center;
 }
 
+/* ===== Cart toggle (nav) ===== */
+.cart-toggle {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-1);
+  background: var(--ember-muted);
+  border: 1px solid rgba(255,90,31,0.30);
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: border-color 160ms ease, background-color 160ms ease, box-shadow 240ms ease;
+}
+.cart-toggle:hover { border-color: var(--ember); box-shadow: 0 0 16px var(--ember-glow-lg); }
+.cart-toggle__count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 18px; height: 18px; padding: 0 5px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0;
+  color: var(--text-inv);
+  background: var(--ember);
+  border-radius: 9999px;
+}
+.cart-toggle__count[data-empty="true"] { background: var(--bg-3); color: var(--text-3); }
+
+/* ===== Cart overlay + drawer ===== */
+.cart-overlay {
+  position: fixed; inset: 0; z-index: 40;
+  background: rgba(4, 5, 7, 0.62);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  opacity: 0; transition: opacity 240ms ease;
+}
+.cart-overlay.is-open { opacity: 1; }
+
+.cart-drawer {
+  position: fixed; top: 0; right: 0; z-index: 41;
+  display: flex; flex-direction: column;
+  width: min(440px, 100vw);
+  height: 100dvh;
+  background: linear-gradient(180deg, var(--bg-1) 0%, var(--bg-base) 100%);
+  border-left: 1px solid var(--border-default);
+  box-shadow: -24px 0 64px rgba(0,0,0,0.6);
+  transform: translateX(100%);
+  transition: transform 280ms cubic-bezier(0.2,0,0,1);
+}
+.cart-drawer.is-open { transform: translateX(0); }
+
+.cart-drawer__head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px 12px;
+}
+.cart-drawer__title {
+  margin: 0;
+  font-size: 22px; font-weight: 700; letter-spacing: -0.02em;
+  color: var(--text-1);
+}
+.cart-drawer__close {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px;
+  font-size: 22px; line-height: 1;
+  color: var(--text-2);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+.cart-drawer__close:hover { color: var(--ember); border-color: var(--ember); }
+.cart-drawer__ruo {
+  margin: 0 24px 8px;
+  padding: 8px 12px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-2);
+  background: var(--ember-muted);
+  border: 1px solid rgba(255,90,31,0.20);
+  border-radius: 6px;
+  text-align: center;
+}
+
+.cart-view {
+  display: flex; flex-direction: column;
+  flex: 1; min-height: 0;
+}
+.cart-view[hidden] { display: none; }
+
+/* Scrolling list region */
+.cart-scroll {
+  flex: 1; min-height: 0;
+  overflow-y: auto;
+  padding: 8px 24px 16px;
+}
+
+.cart-line {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 12px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.cart-line__name {
+  font-size: 15px; font-weight: 600; letter-spacing: -0.01em;
+  color: var(--text-1);
+}
+.cart-line__meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+.cart-line__line-total {
+  font-family: var(--font-mono);
+  font-size: 14px; font-weight: 600;
+  color: var(--text-1);
+  text-align: right;
+  align-self: start;
+}
+.cart-line__controls {
+  grid-column: 1 / -1;
+  display: flex; align-items: center; gap: 12px;
+  margin-top: 8px;
+}
+.cart-stepper {
+  display: inline-flex; align-items: center;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.cart-stepper button {
+  width: 32px; height: 32px;
+  font-size: 16px; line-height: 1;
+  color: var(--text-1);
+  background: var(--bg-2);
+  border: none; cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+.cart-stepper button:hover { background: var(--bg-3); color: var(--ember); }
+.cart-stepper__qty {
+  min-width: 38px; text-align: center;
+  font-family: var(--font-mono); font-size: 13px; font-weight: 600;
+  color: var(--text-1);
+}
+.cart-line__remove {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--text-3);
+  background: transparent; border: none; cursor: pointer;
+  transition: color 140ms ease;
+}
+.cart-line__remove:hover { color: var(--ember); }
+
+.cart-empty {
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+}
+
+/* Drawer footer (totals + primary action) */
+.cart-foot {
+  padding: 16px 24px calc(20px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border-default);
+  background: rgba(7,8,10,0.6);
+}
+.cart-subtotal {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 4px;
+}
+.cart-subtotal__label {
+  font-family: var(--font-mono);
+  font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--text-2);
+}
+.cart-subtotal__value {
+  font-family: var(--font-mono);
+  font-size: 20px; font-weight: 600;
+  color: var(--text-1);
+}
+.cart-foot__note {
+  margin: 0 0 14px;
+  font-family: var(--font-mono);
+  font-size: 10px; line-height: 1.6; letter-spacing: 0.02em;
+  color: var(--text-3);
+}
+.cart-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 14px; font-weight: 600; letter-spacing: 0.02em;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 160ms ease, box-shadow 240ms ease, transform 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+.cart-btn--primary { background: var(--ember); color: var(--text-inv); }
+.cart-btn--primary:hover:not(:disabled) { background: var(--ember-bright); box-shadow: 0 0 28px var(--ember-glow); transform: translateY(-1px); }
+.cart-btn--primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.cart-btn--ghost { background: transparent; color: var(--text-1); border-color: var(--border-strong); }
+.cart-btn--ghost:hover { border-color: var(--ember); color: var(--ember); }
+.cart-foot__row { display: flex; gap: 10px; }
+.cart-foot__row .cart-btn { width: auto; flex: 1; }
+
+/* Checkout (order details) fields inside drawer */
+.cart-form { display: flex; flex-direction: column; gap: 14px; }
+.cart-form__grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+}
+.cart-form .field input,
+.cart-form .field select,
+.cart-form .field textarea { font-size: 14px; padding: 11px 13px; }
+.cart-ack {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-family: var(--font-sans);
+  font-size: 12px; line-height: 1.5;
+  color: var(--text-2);
+}
+.cart-ack input { margin-top: 2px; width: 16px; height: 16px; accent-color: var(--ember); flex: none; }
+.cart-status {
+  font-family: var(--font-mono);
+  font-size: 12px; line-height: 1.6; color: var(--text-2);
+}
+.cart-status:not(:empty) {
+  padding: 10px 12px;
+  background: var(--ember-muted);
+  border: 1px solid rgba(255,90,31,0.25);
+  border-radius: 6px;
+}
+.cart-status a { color: var(--ember); text-decoration: none; }
+
+/* Success / receipt */
+.cart-receipt { padding: 8px 24px 24px; }
+.cart-receipt__icon {
+  width: 48px; height: 48px; margin: 8px 0 16px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 24px;
+  color: var(--ember);
+  background: var(--ember-muted);
+  border: 1px solid rgba(255,90,31,0.30);
+  border-radius: 9999px;
+}
+.cart-receipt h3 {
+  margin: 0 0 8px; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; color: var(--text-1);
+}
+.cart-receipt p { margin: 0 0 16px; font-size: 14px; line-height: 1.6; color: var(--text-2); }
+.cart-receipt__items {
+  margin: 0 0 16px; padding: 14px 16px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  font-family: var(--font-mono); font-size: 12px; line-height: 1.7; color: var(--text-1);
+}
+.cart-receipt__items .ln { display: flex; justify-content: space-between; gap: 12px; }
+.cart-receipt__items .sub { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-subtle); font-weight: 700; }
+.cart-receipt__actions { display: flex; gap: 10px; }
+.cart-receipt__actions .cart-btn { flex: 1; }
+
+@media (max-width: 480px) {
+  .cart-form__grid { grid-template-columns: 1fr; }
+}
+
+/* ===== Print: clean receipt only ===== */
+@media print {
+  body > *:not(#cart-drawer) { display: none !important; }
+  #cart-overlay { display: none !important; }
+  #cart-drawer {
+    position: static; transform: none; width: auto; max-width: 100%;
+    height: auto; box-shadow: none; border: none; background: #fff;
+  }
+  #cart-drawer .cart-view:not(#cart-view-success) { display: none !important; }
+  #cart-drawer .cart-drawer__close,
+  #cart-drawer .cart-receipt__actions { display: none !important; }
+  #cart-drawer, #cart-drawer * { color: #000 !important; background: transparent !important; }
+  .cart-receipt__items { border: 1px solid #999 !important; }
+}
+
 /* ===== Reduced motion ===== */
 @media (prefers-reduced-motion: reduce) {
   .product-card,
@@ -617,6 +938,8 @@ html, body {
   .product-card::after,
   .product-card__title,
   .product-card__cta,
+  .cart-overlay,
+  .cart-drawer,
   .bg { transition: none; animation: none; }
   .product-card:hover,
   .product-card__cta:hover { transform: none; }
@@ -635,6 +958,9 @@ html, body {
   <div class="nav__links">
     <a href="catalog.html" class="is-active">Catalog</a>
     <a href="#contact">Contact</a>
+    <button type="button" class="cart-toggle" id="cart-toggle" aria-haspopup="dialog" aria-controls="cart-drawer">
+      Order <span class="cart-toggle__count" id="cart-count" data-empty="true">0</span>
+    </button>
   </div>
 </nav>
 
@@ -745,6 +1071,133 @@ html, body {
     </div>
   </section>
 </div>
+
+<!-- ===== Order cart (slide-out drawer) ===== -->
+<div class="cart-overlay" id="cart-overlay" hidden></div>
+<aside class="cart-drawer" id="cart-drawer" role="dialog" aria-modal="true" aria-label="Your order" aria-hidden="true">
+  <div class="cart-drawer__head">
+    <h2 class="cart-drawer__title" id="cart-drawer-title">Your order</h2>
+    <button type="button" class="cart-drawer__close" id="cart-close" aria-label="Close order">&times;</button>
+  </div>
+  <p class="cart-drawer__ruo">Research-use-only &middot; Not for human consumption</p>
+
+  <!-- View 1: line items -->
+  <div class="cart-view" id="cart-view-list">
+    <div class="cart-scroll">
+      <div id="cart-lines"></div>
+      <div class="cart-empty" id="cart-empty">Your order is empty. Add compounds from the catalog to begin.</div>
+    </div>
+    <div class="cart-foot">
+      <div class="cart-subtotal">
+        <span class="cart-subtotal__label">Subtotal</span>
+        <span class="cart-subtotal__value" id="cart-subtotal">$0</span>
+      </div>
+      <p class="cart-foot__note">
+        Subtotal excludes shipping. No payment is taken here &mdash; we email you to confirm
+        stock, add shipping, and arrange payment. Allow 2&ndash;4 weeks for delivery.
+      </p>
+      <button type="button" class="cart-btn cart-btn--primary" id="cart-continue" disabled>
+        Continue to order details &rarr;
+      </button>
+    </div>
+  </div>
+
+  <!-- View 2: order details (contact + shipping) -->
+  <div class="cart-view" id="cart-view-details" hidden>
+    <div class="cart-scroll">
+      <form class="cart-form" id="order-form" novalidate>
+        <div class="field">
+          <label for="of-name">Full name <span class="field__required">*</span></label>
+          <input id="of-name" name="name" type="text" required autocomplete="name" placeholder="Your name" />
+        </div>
+        <div class="field">
+          <label for="of-email">Email <span class="field__required">*</span></label>
+          <input id="of-email" name="email" type="email" required autocomplete="email" placeholder="you@domain.com" />
+        </div>
+        <div class="field">
+          <label for="of-phone">Phone <span class="field__required">*</span></label>
+          <input id="of-phone" name="phone" type="tel" inputmode="tel" required autocomplete="tel" placeholder="(555) 555-5555" />
+        </div>
+        <div class="field">
+          <label for="of-address">Shipping address <span class="field__required">*</span></label>
+          <input id="of-address" name="address" type="text" required autocomplete="address-line1" placeholder="Street address" />
+        </div>
+        <div class="field">
+          <label for="of-address2">Apt / Suite <span class="field__optional">&mdash; Optional</span></label>
+          <input id="of-address2" name="address2" type="text" autocomplete="address-line2" placeholder="Unit, apt, suite" />
+        </div>
+        <div class="cart-form__grid">
+          <div class="field">
+            <label for="of-city">City <span class="field__required">*</span></label>
+            <input id="of-city" name="city" type="text" required autocomplete="address-level2" placeholder="City" />
+          </div>
+          <div class="field">
+            <label for="of-state">State / Region <span class="field__required">*</span></label>
+            <input id="of-state" name="state" type="text" required autocomplete="address-level1" placeholder="State" />
+          </div>
+        </div>
+        <div class="cart-form__grid">
+          <div class="field">
+            <label for="of-zip">ZIP / Postal <span class="field__required">*</span></label>
+            <input id="of-zip" name="zip" type="text" required autocomplete="postal-code" placeholder="ZIP" />
+          </div>
+          <div class="field">
+            <label for="of-country">Country <span class="field__required">*</span></label>
+            <input id="of-country" name="country" type="text" required autocomplete="country-name" value="United States" placeholder="Country" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="of-notes">Notes <span class="field__optional">&mdash; Optional</span></label>
+          <textarea id="of-notes" name="notes" rows="3" placeholder="Anything we should know about this order."></textarea>
+        </div>
+        <label class="cart-ack">
+          <input type="checkbox" id="of-ack" name="ruo_ack" required />
+          <span>I understand these compounds are sold for laboratory research use only and not for human consumption.</span>
+        </label>
+        <!-- Honeypot -->
+        <div style="position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden;" aria-hidden="true">
+          <label>Don't fill this out if you're human:
+            <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" />
+          </label>
+        </div>
+        <div class="cart-status" id="order-status" role="status" aria-live="polite"></div>
+      </form>
+    </div>
+    <div class="cart-foot">
+      <div class="cart-subtotal">
+        <span class="cart-subtotal__label">Subtotal</span>
+        <span class="cart-subtotal__value" id="cart-subtotal-2">$0</span>
+      </div>
+      <p class="cart-foot__note">
+        Submitting sends your order to Aligned Aminos. No payment is collected now &mdash;
+        we reply within 24 hours to confirm and arrange payment.
+      </p>
+      <div class="cart-foot__row">
+        <button type="button" class="cart-btn cart-btn--ghost" id="order-back">&larr; Back</button>
+        <button type="submit" form="order-form" class="cart-btn cart-btn--primary" id="order-submit">Submit order &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- View 3: success / receipt -->
+  <div class="cart-view" id="cart-view-success" hidden>
+    <div class="cart-scroll">
+      <div class="cart-receipt">
+        <span class="cart-receipt__icon" aria-hidden="true">&check;</span>
+        <h3>Order received.</h3>
+        <p id="order-success-msg">Thanks &mdash; we've got your order. We'll email you within 24 hours to confirm stock, add shipping, and arrange payment. No payment was taken.</p>
+        <div class="cart-receipt__items" id="order-receipt"></div>
+        <p style="font-family:var(--font-mono); font-size:11px; color:var(--text-3);">
+          This is your copy &mdash; print or save it for your records.
+        </p>
+        <div class="cart-receipt__actions">
+          <button type="button" class="cart-btn cart-btn--ghost" id="order-print">Print / Save</button>
+          <button type="button" class="cart-btn cart-btn--primary" id="order-done">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</aside>
 
 <footer class="page-footer">
   &copy; Aligned Aminos &middot; All compounds RUO &middot; Not for human consumption
@@ -867,7 +1320,15 @@ function renderCard(p) {
           <span class="price__amount">$${priceFmt}</span>
           <span class="price__unit">/ box</span>
         </div>
-        <a class="product-card__cta" href="datasheets/${escapeHtml(p.slug)}.pdf" target="_blank" rel="noopener">Data sheet &rarr;</a>
+        <div class="product-card__actions">
+          <a class="pc-btn pc-btn--ghost" href="datasheets/${escapeHtml(p.slug)}.pdf" target="_blank" rel="noopener">Data sheet</a>
+          <button type="button" class="pc-btn pc-btn--primary cart-add"
+            data-key="${escapeHtml(p.slug + '|' + p.mass)}"
+            data-name="${escapeHtml(p.name)}"
+            data-mass="${escapeHtml(p.mass)}"
+            data-vials="${vials}"
+            data-price="${p.price}">Add to order</button>
+        </div>
       </footer>
     </article>
   `;
@@ -1007,6 +1468,327 @@ renderJumpMenu();
       submitBtn.innerHTML = originalLabel;
     }
   });
+})();
+</script>
+
+<script>
+/* ═════════════════════════════════════════════════════════════════════════
+   ORDER CART  —  client-side cart + order request
+   ───────────────────────────────────────────────────────────────────────
+   No backend, no payment. Cart lives in localStorage. On submit, the
+   itemized order is emailed to Jordan via Web3Forms (same pipeline as the
+   contact form, subject "WEB ORDER:"), and the customer gets an on-screen,
+   printable confirmation. PRODUCTS (declared above) is the single source of
+   truth for names + prices, so changing a price there updates the cart too.
+   ═════════════════════════════════════════════════════════════════════════ */
+(() => {
+  const STORAGE_KEY = 'aa_order_v1';
+  const ACCESS_KEY  = 'ab1d26f3-dc9b-4689-aef2-ada34594cb0a';
+  const ENDPOINT    = 'https://api.web3forms.com/submit';
+  const FALLBACK    = 'Alignedaminos@proton.me';
+
+  // Build a lookup of the current catalog keyed by slug|mass (mass disambiguates
+  // products that share a slug, e.g. SS-31 10 mg vs 50 mg).
+  const BY_KEY = {};
+  PRODUCTS.forEach(p => { BY_KEY[p.slug + '|' + p.mass] = p; });
+
+  const $ = (id) => document.getElementById(id);
+  const fmt = (n) => '$' + Number(n).toLocaleString('en-US');
+
+  let cart = loadCart();
+
+  function loadCart() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      if (!Array.isArray(raw)) return [];
+      // Drop anything no longer in the catalog; clamp qty 1..99.
+      return raw
+        .filter(l => l && BY_KEY[l.key] && parseInt(l.qty, 10) > 0)
+        .map(l => ({ key: l.key, qty: Math.min(99, Math.max(1, parseInt(l.qty, 10) || 1)) }));
+    } catch (e) { return []; }
+  }
+  function saveCart() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
+    updateBadge();
+  }
+  const count = () => cart.reduce((s, l) => s + l.qty, 0);
+  const subtotal = () => cart.reduce((s, l) => s + (BY_KEY[l.key].price * l.qty), 0);
+
+  /* ----- Badge ----- */
+  function updateBadge() {
+    const el = $('cart-count');
+    if (!el) return;
+    const n = count();
+    el.textContent = n;
+    el.dataset.empty = n === 0 ? 'true' : 'false';
+  }
+
+  /* ----- Drawer open / close ----- */
+  const overlay = $('cart-overlay');
+  const drawer  = $('cart-drawer');
+  let lastFocus = null;
+
+  function openDrawer() {
+    lastFocus = document.activeElement;
+    overlay.hidden = false;
+    drawer.setAttribute('aria-hidden', 'false');
+    // Force a reflow so the slide-in transition runs from the off-screen state.
+    // (Don't rely on requestAnimationFrame here — it's throttled when the tab
+    // isn't visible, which would leave the drawer stuck off-screen.)
+    void drawer.offsetWidth;
+    overlay.classList.add('is-open');
+    drawer.classList.add('is-open');
+    document.body.style.overflow = 'hidden';
+    $('cart-close').focus();
+  }
+  function closeDrawer() {
+    overlay.classList.remove('is-open');
+    drawer.classList.remove('is-open');
+    drawer.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    setTimeout(() => { overlay.hidden = true; }, 280);
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
+  /* ----- View switching (list / details / success) ----- */
+  function showView(name) {
+    $('cart-view-list').hidden    = name !== 'list';
+    $('cart-view-details').hidden = name !== 'details';
+    $('cart-view-success').hidden = name !== 'success';
+    $('cart-drawer-title').textContent =
+      name === 'details' ? 'Order details' : name === 'success' ? 'Confirmed' : 'Your order';
+  }
+
+  /* ----- Render line items ----- */
+  function renderLines() {
+    const wrap   = $('cart-lines');
+    const empty  = $('cart-empty');
+    const hasItems = cart.length > 0;
+
+    empty.style.display = hasItems ? 'none' : 'block';
+    $('cart-continue').disabled = !hasItems;
+
+    wrap.innerHTML = cart.map(l => {
+      const p = BY_KEY[l.key];
+      const vials = p.vials || 10;
+      return `
+        <div class="cart-line" data-key="${escapeHtml(l.key)}">
+          <div>
+            <div class="cart-line__name">${escapeHtml(p.name)}</div>
+            <div class="cart-line__meta">${escapeHtml(p.mass)} &middot; ${vials}-vial box &middot; ${fmt(p.price)}/box</div>
+          </div>
+          <div class="cart-line__line-total">${fmt(p.price * l.qty)}</div>
+          <div class="cart-line__controls">
+            <div class="cart-stepper">
+              <button type="button" class="cart-dec" aria-label="Decrease quantity">&minus;</button>
+              <span class="cart-stepper__qty">${l.qty}</span>
+              <button type="button" class="cart-inc" aria-label="Increase quantity">+</button>
+            </div>
+            <button type="button" class="cart-line__remove">Remove</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const sub = fmt(subtotal());
+    $('cart-subtotal').textContent = sub;
+    $('cart-subtotal-2').textContent = sub;
+  }
+
+  /* ----- Cart mutations ----- */
+  function addToCart(key) {
+    if (!BY_KEY[key]) return;
+    const line = cart.find(l => l.key === key);
+    if (line) line.qty = Math.min(99, line.qty + 1);
+    else cart.push({ key, qty: 1 });
+    saveCart();
+    renderLines();
+    showView('list');
+    openDrawer();
+  }
+  function setQty(key, qty) {
+    qty = Math.max(0, Math.min(99, qty));
+    if (qty === 0) { cart = cart.filter(l => l.key !== key); }
+    else { const line = cart.find(l => l.key === key); if (line) line.qty = qty; }
+    saveCart();
+    renderLines();
+  }
+
+  /* ----- Add-to-order buttons (event delegation on the catalog) ----- */
+  const catalogRoot = $('catalog-root');
+  if (catalogRoot) {
+    catalogRoot.addEventListener('click', (e) => {
+      const btn = e.target.closest('.cart-add');
+      if (!btn) return;
+      addToCart(btn.dataset.key);
+      const original = btn.textContent;
+      btn.textContent = 'Added ✓';
+      btn.classList.add('pc-btn--added');
+      setTimeout(() => { btn.textContent = original; btn.classList.remove('pc-btn--added'); }, 1200);
+    });
+  }
+
+  /* ----- Line item controls (delegation on the lines container) ----- */
+  $('cart-lines').addEventListener('click', (e) => {
+    const row = e.target.closest('.cart-line');
+    if (!row) return;
+    const key = row.dataset.key;
+    const line = cart.find(l => l.key === key);
+    if (!line) return;
+    if (e.target.closest('.cart-inc'))         setQty(key, line.qty + 1);
+    else if (e.target.closest('.cart-dec'))    setQty(key, line.qty - 1);
+    else if (e.target.closest('.cart-line__remove')) setQty(key, 0);
+  });
+
+  /* ----- Navigation between views ----- */
+  $('cart-continue').addEventListener('click', () => { if (cart.length) showView('details'); });
+  $('order-back').addEventListener('click', () => showView('list'));
+  $('order-done').addEventListener('click', closeDrawer);
+  $('order-print').addEventListener('click', () => window.print());
+
+  /* ----- Open / close wiring ----- */
+  $('cart-toggle').addEventListener('click', () => { renderLines(); showView('list'); openDrawer(); });
+  $('cart-close').addEventListener('click', closeDrawer);
+  overlay.addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && drawer.classList.contains('is-open')) closeDrawer();
+  });
+
+  /* ----- Order text builders ----- */
+  function orderLinesText() {
+    return cart.map(l => {
+      const p = BY_KEY[l.key];
+      const vials = p.vials || 10;
+      return `${l.qty} x ${p.name} (${p.mass}, ${vials}-vial box) @ ${fmt(p.price)}/box = ${fmt(p.price * l.qty)}`;
+    }).join('\n');
+  }
+  function receiptHtml() {
+    const rows = cart.map(l => {
+      const p = BY_KEY[l.key];
+      return `<div class="ln"><span>${l.qty}&times; ${escapeHtml(p.name)} (${escapeHtml(p.mass)})</span><span>${fmt(p.price * l.qty)}</span></div>`;
+    }).join('');
+    return rows + `<div class="ln sub"><span>Subtotal (excl. shipping)</span><span>${fmt(subtotal())}</span></div>`;
+  }
+
+  /* ----- Submit the order ----- */
+  const form = $('order-form');
+  const status = $('order-status');
+  const trim = (v) => (v || '').trim();
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!cart.length) { showView('list'); return; }
+
+    const f = form;
+    const name    = trim(f.name.value);
+    const email   = trim(f.email.value);
+    const phone   = trim(f.phone.value);
+    const address = trim(f.address.value);
+    const address2= trim(f.address2.value);
+    const city    = trim(f.city.value);
+    const state   = trim(f.state.value);
+    const zip     = trim(f.zip.value);
+    const country = trim(f.country.value);
+    const notes   = trim(f.notes.value);
+    const ack     = f.ruo_ack.checked;
+    const botcheck= f.botcheck && f.botcheck.checked;
+
+    if (!name || !email || !phone || !address || !city || !state || !zip || !country) {
+      status.innerHTML = 'Please fill in all required fields.';
+      return;
+    }
+    if (!ack) { status.innerHTML = 'Please confirm the research-use-only acknowledgment to continue.'; return; }
+
+    // Honeypot: silently fake success for bots.
+    if (botcheck) { showView('success'); return; }
+
+    const submitBtn = $('order-submit');
+    const originalLabel = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = 'Sending…';
+    status.innerHTML = '';
+
+    const shipBlock =
+      `${name}\n${address}${address2 ? '\n' + address2 : ''}\n${city}, ${state} ${zip}\n${country}`;
+
+    const message =
+`ORDER REQUEST (no payment collected online)
+
+ITEMS
+${orderLinesText()}
+
+Subtotal (excl. shipping): ${fmt(subtotal())}
+Total boxes: ${count()}
+
+SHIP TO
+${shipBlock}
+
+CONTACT
+Email: ${email}
+Phone: ${phone}
+
+NOTES
+${notes || '(none)'}
+
+RUO acknowledged: Yes
+— Final invoice including shipping to be sent by Aligned Aminos. Arrange payment separately.`;
+
+    const payload = {
+      access_key: ACCESS_KEY,
+      subject: `WEB ORDER: ${name} (${count()} boxes, ${fmt(subtotal())})`,
+      from_name: 'Aligned Aminos Website',
+      botcheck: '',
+      name: name,
+      email: email,
+      phone: phone,
+      ship_to: shipBlock,
+      order_items: orderLinesText(),
+      subtotal_excl_shipping: fmt(subtotal()),
+      total_boxes: count(),
+      notes: notes || '(none)',
+      ruo_acknowledged: 'Yes',
+      message: message,
+      submitted_from: `${window.location.host}${window.location.pathname} on ${new Date().toISOString().slice(0,16).replace('T',' ')} UTC`,
+    };
+
+    try {
+      const res = await fetch(ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (data.success) {
+        $('order-receipt').innerHTML = receiptHtml();
+        showView('success');
+        cart = [];
+        saveCart();
+        renderLines();
+        form.reset();
+        f.country.value = 'United States';
+      } else {
+        status.innerHTML =
+          "Hm, that didn't go through. Please try again, or email " +
+          `<a href="mailto:${FALLBACK}">${FALLBACK}</a> with your order.`;
+      }
+    } catch (err) {
+      status.innerHTML =
+        "Couldn't reach the server. Check your connection and try again, " +
+        `or email <a href="mailto:${FALLBACK}">${FALLBACK}</a> with your order.`;
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalLabel;
+    }
+  });
+
+  /* ----- Init ----- */
+  updateBadge();
+  renderLines();
+  // Allow other pages to deep-link the cart open: catalog.html#cart
+  if (window.location.hash === '#cart') {
+    showView('list');
+    openDrawer();
+  }
 })();
 </script>
 
