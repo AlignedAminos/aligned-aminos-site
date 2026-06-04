@@ -370,6 +370,30 @@ html, body {
   line-height: 1.4;
   color: var(--text-1);
 }
+select.pc-size {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-ember-gold);
+  background: var(--bg-3);
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+  padding: 3px 22px 3px 7px;
+  margin-top: -2px;
+  cursor: pointer;
+  -webkit-appearance: none; -moz-appearance: none; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23c8772e' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 7px center;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+select.pc-size:hover,
+select.pc-size:focus-visible {
+  border-color: var(--color-ember);
+  box-shadow: 0 0 0 2px var(--ember-glow);
+  outline: none;
+}
+select.pc-size option { background: var(--bg-3); color: var(--text-1); }
 
 .product-card__footer {
   display: flex;
@@ -1265,14 +1289,25 @@ html, body {
    • Refresh the browser       → everything re-renders. No build step.
 
    PRICING MODEL:
-   Products are sold by the BOX, not per individual vial. Each `price` value
-   below is the full box price. Box composition shown on the card as
-   "Per vial / Box" specs. Default box size = 10 vials; exceptions noted
-   per-line (Cerebrolysin = 6, BAC Water = 11).
+   Products are sold by the BOX, not per individual vial. Each product groups
+   its sizes under `variants` — one row per mg strength, each with its own
+   box `price`. The card shows a size dropdown; selecting a size drives the
+   price + box count. Default box size = 10 vials; per-variant `vials`
+   overrides it (e.g. BAC Water = 11, and the largest GLP-1 sizes = 11).
 
-   Current prices = supplier wholesale (Peptide List 5/24/26) + 10% retail
-   markup, then rounded to nearest $5. Applied 2026-05-24 per Kelley.
-   Pending Jordan's final verification — flag any number he wants changed.
+   Pricing rule (RATCHET, applied 2026-06-04 from "Peptide Price List V2"):
+   For each size, price = MAX(prior live price for that size, V2 wholesale
+   x1.10 rounded to nearest $5). Prices only ever go UP — never down — per
+   Kelley. New sizes with no prior price use V2 wholesale x1.10, rounded $5.
+
+   DECISIONS (Kelley, 2026-06-04):
+   • Tirzepatide 20mg → $265, Retatrutide 20mg → $460: dropped to clear the
+     ladder inversion (deliberate override of "never lower" for these two).
+   • Cerebrolysin: vial count corrected to 10; repriced $395 → $130 (the old
+     $395 was a legacy outlier; now follows the +10% rule).
+   • BAC Water: kept as the $15 / 11-vial loss leader (V2 ratchet not applied).
+   • Oxytocin Acetate: DISCONTINUED (dropped from V2 supplier list).
+     (Orphaned datasheets/oxytocin-acetate.html left in place, no longer linked.)
    ═════════════════════════════════════════════════════════════════════════ */
 
 const CATEGORIES = [
@@ -1288,53 +1323,89 @@ const CATEGORIES = [
 const PRODUCTS = [
 
   // ─── Metabolic & GLP-1 ───────────────────────────────────────────────
-  { cat: 'metabolic', name: 'Tirzepatide',     slug: 'tirzepatide',              sub: 'GIP / GLP-1 dual agonist',          mass: '20 mg', vials: 10, price: 415 },
-  { cat: 'metabolic', name: 'Retatrutide',     slug: 'retatrutide',              sub: 'GLP-1 / GIP / Glucagon triple agonist', mass: '20 mg', vials: 10, price: 760 },
-  { cat: 'metabolic', name: 'MOTS-c',          slug: 'mots-c',                   sub: 'Mitochondrial-derived peptide',     mass: '40 mg', vials: 10, price: 945 },
-  { cat: 'metabolic', name: 'AOD-9604',        slug: 'aod-9604',                 sub: 'GH fragment 176-191',               mass: '10 mg', vials: 10, price: 820 },
-  { cat: 'metabolic', name: '5-Amino-1MQ',     slug: '5-amino-1mq',              sub: 'Selective NNMT inhibitor',          mass: '50 mg', vials: 10, price: 450 },
+  { cat: 'metabolic', name: 'Tirzepatide',     slug: 'tirzepatide',              sub: 'GIP / GLP-1 dual agonist',          variants: [
+    { mass: '5 mg', price: 115 }, { mass: '10 mg', price: 165 }, { mass: '15 mg', price: 200 },
+    { mass: '20 mg', price: 265 }, { mass: '30 mg', price: 395 }, { mass: '40 mg', price: 460 },
+    { mass: '50 mg', price: 625 }, { mass: '60 mg', price: 725 }, { mass: '100 mg', price: 1220 },
+    { mass: '120 mg', vials: 11, price: 1520 } ] },
+  { cat: 'metabolic', name: 'Retatrutide',     slug: 'retatrutide',              sub: 'GLP-1 / GIP / Glucagon triple agonist', variants: [
+    { mass: '5 mg', price: 230 }, { mass: '10 mg', price: 265 }, { mass: '15 mg', price: 430 },
+    { mass: '20 mg', price: 460 }, { mass: '30 mg', price: 695 }, { mass: '40 mg', price: 925 },
+    { mass: '50 mg', price: 1120 }, { mass: '60 mg', vials: 11, price: 1285 } ] },
+  { cat: 'metabolic', name: 'MOTS-c',          slug: 'mots-c',                   sub: 'Mitochondrial-derived peptide',     variants: [
+    { mass: '10 mg', price: 250 }, { mass: '40 mg', price: 990 } ] },
+  { cat: 'metabolic', name: 'AOD-9604',        slug: 'aod-9604',                 sub: 'GH fragment 176-191',               variants: [
+    { mass: '5 mg', price: 430 }, { mass: '10 mg', price: 860 } ] },
+  { cat: 'metabolic', name: '5-Amino-1MQ',     slug: '5-amino-1mq',              sub: 'Selective NNMT inhibitor',          variants: [
+    { mass: '5 mg', price: 130 }, { mass: '10 mg', price: 165 }, { mass: '50 mg', price: 450 } ] },
 
   // ─── Recovery & Repair ───────────────────────────────────────────────
-  { cat: 'recovery',  name: 'BPC-157',         slug: 'bpc-157',                  sub: 'Body Protection Compound',          mass: '10 mg', vials: 10, price: 265 },
-  { cat: 'recovery',  name: 'TB-500',          slug: 'tb-500',                   sub: 'Thymosin Beta-4 (full-length)',     mass: '10 mg', vials: 10, price: 460 },
-  { cat: 'recovery',  name: 'KPV',             slug: 'kpv',                      sub: 'Lysine-Proline-Valine tripeptide',  mass: '10 mg', vials: 10, price: 240 },
-  { cat: 'recovery',  name: 'BPC-157 + TB-500',slug: 'bpc-157-tb-500-blend',     sub: 'Recovery stack blend',              mass: '20 mg', vials: 10, price: 660 },
-  { cat: 'recovery',  name: 'GLOW',            slug: 'glow',                     sub: 'BPC-157 + GHK-Cu + TB-500',         mass: '70 mg', vials: 10, price: 725 },
-  { cat: 'recovery',  name: 'KLOW',            slug: 'klow',                     sub: 'GLOW + KPV',                        mass: '80 mg', vials: 10, price: 860 },
-  { cat: 'recovery',  name: 'LL-37',           slug: 'll-37',                    sub: 'Cathelicidin antimicrobial peptide',mass: '5 mg',  vials: 10, price: 395 },
+  { cat: 'recovery',  name: 'BPC-157',         slug: 'bpc-157',                  sub: 'Body Protection Compound',          variants: [
+    { mass: '5 mg', price: 130 }, { mass: '10 mg', price: 265 }, { mass: '20 mg', price: 395 } ] },
+  { cat: 'recovery',  name: 'TB-500',          slug: 'tb-500',                   sub: 'Thymosin Beta-4 (full-length)',     variants: [
+    { mass: '5 mg', price: 330 }, { mass: '10 mg', price: 625 }, { mass: '20 mg', price: 1220 } ] },
+  { cat: 'recovery',  name: 'KPV',             slug: 'kpv',                      sub: 'Lysine-Proline-Valine tripeptide',  variants: [
+    { mass: '5 mg', price: 165 }, { mass: '10 mg', price: 240 } ] },
+  { cat: 'recovery',  name: 'BPC-157 + TB-500',slug: 'bpc-157-tb-500-blend',     sub: 'Recovery stack blend',              variants: [
+    { mass: '10 mg', price: 365 }, { mass: '20 mg', price: 725 } ] },
+  { cat: 'recovery',  name: 'GLOW',            slug: 'glow',                     sub: 'BPC-157 + GHK-Cu + TB-500',         variants: [
+    { mass: '70 mg', price: 760 } ] },
+  { cat: 'recovery',  name: 'KLOW',            slug: 'klow',                     sub: 'GLOW + KPV',                        variants: [
+    { mass: '80 mg', price: 860 } ] },
+  { cat: 'recovery',  name: 'LL-37',           slug: 'll-37',                    sub: 'Cathelicidin antimicrobial peptide',variants: [
+    { mass: '5 mg', price: 395 } ] },
 
   // ─── Growth & GH Axis ────────────────────────────────────────────────
-  { cat: 'gh-axis',   name: 'IGF-1 LR3',       slug: 'igf-1-lr3',                sub: 'Long arginine-3 IGF-1 analog',      mass: '1 mg',  vials: 10, price: 550 },
-  { cat: 'gh-axis',   name: 'Ipamorelin',      slug: 'ipamorelin',               sub: 'Selective GH secretagogue',         mass: '10 mg', vials: 10, price: 350 },
-  { cat: 'gh-axis',   name: 'CJC-1295 + IPA',  slug: 'cjc-1295-ipamorelin-blend',sub: 'GHRH analog + ghrelin mimetic',     mass: '10 mg', vials: 10, price: 395 },
-  { cat: 'gh-axis',   name: 'Tesamorelin',     slug: 'tesamorelin',              sub: 'GHRH analog',                       mass: '10 mg', vials: 10, price: 745 },
-  { cat: 'gh-axis',   name: 'Sermorelin',      slug: 'sermorelin',               sub: 'GHRH (1-29) analog',                mass: '10 mg', vials: 10, price: 430 },
-  { cat: 'gh-axis',   name: 'HCG',             slug: 'hcg',                      sub: 'Human Chorionic Gonadotropin',      mass: '10,000 IU', vials: 10, price: 595 },
-  { cat: 'gh-axis',   name: 'HMG',             slug: 'hmg',                      sub: 'Human Menopausal Gonadotropin',     mass: '75 IU', vials: 10, price: 265 },
+  { cat: 'gh-axis',   name: 'IGF-1 LR3',       slug: 'igf-1-lr3',                sub: 'Long arginine-3 IGF-1 analog',      variants: [
+    { mass: '0.1 mg', price: 165 }, { mass: '1 mg', price: 825 } ] },
+  { cat: 'gh-axis',   name: 'Ipamorelin',      slug: 'ipamorelin',               sub: 'Selective GH secretagogue',         variants: [
+    { mass: '5 mg', price: 165 }, { mass: '10 mg', price: 350 } ] },
+  { cat: 'gh-axis',   name: 'CJC-1295 + IPA',  slug: 'cjc-1295-ipamorelin-blend',sub: 'GHRH analog + ghrelin mimetic',     variants: [
+    { mass: '10 mg', price: 395 }, { mass: '20 mg', price: 760 } ] },
+  { cat: 'gh-axis',   name: 'Tesamorelin',     slug: 'tesamorelin',              sub: 'GHRH analog',                       variants: [
+    { mass: '5 mg', price: 430 }, { mass: '10 mg', price: 790 }, { mass: '20 mg', price: 1520 } ] },
+  { cat: 'gh-axis',   name: 'Sermorelin',      slug: 'sermorelin',               sub: 'GHRH (1-29) analog',                variants: [
+    { mass: '5 mg', price: 315 }, { mass: '10 mg', price: 595 } ] },
+  { cat: 'gh-axis',   name: 'HCG',             slug: 'hcg',                      sub: 'Human Chorionic Gonadotropin',      variants: [
+    { mass: '5,000 IU', price: 345 }, { mass: '10,000 IU', price: 695 } ] },
+  { cat: 'gh-axis',   name: 'HMG',             slug: 'hmg',                      sub: 'Human Menopausal Gonadotropin',     variants: [
+    { mass: '75 IU', price: 265 } ] },
 
   // ─── Longevity & Anti-Aging ──────────────────────────────────────────
-  { cat: 'longevity', name: 'GHK-Cu',          slug: 'ghk-cu',                   sub: 'Copper tripeptide-1',               mass: '100 mg', vials: 10, price: 180 },
-  { cat: 'longevity', name: 'SNAP-8',          slug: 'snap-8',                   sub: 'Topical octapeptide',               mass: '10 mg',  vials: 10, price: 165 },
-  { cat: 'longevity', name: 'Epithalon',       slug: 'epithalon',                sub: 'Telomerase-active tetrapeptide',    mass: '50 mg',  vials: 10, price: 645 },
-  { cat: 'longevity', name: 'Pinealon',        slug: 'pinealon',                 sub: 'Pineal tripeptide bioregulator',    mass: '20 mg',  vials: 10, price: 425 },
-  { cat: 'longevity', name: 'SS-31',           slug: 'ss-31',                    sub: 'Elamipretide, mitochondrial-targeted', mass: '10 mg', vials: 10, price: 375 },
-  { cat: 'longevity', name: 'SS-31',           slug: 'ss-31',                    sub: 'Elamipretide, mitochondrial-targeted', mass: '50 mg', vials: 10, price: 1315 },
+  { cat: 'longevity', name: 'GHK-Cu',          slug: 'ghk-cu',                   sub: 'Copper tripeptide-1',               variants: [
+    { mass: '50 mg', price: 115 }, { mass: '100 mg', price: 180 } ] },
+  { cat: 'longevity', name: 'SNAP-8',          slug: 'snap-8',                   sub: 'Topical octapeptide',               variants: [
+    { mass: '10 mg', price: 165 } ] },
+  { cat: 'longevity', name: 'Epithalon',       slug: 'epithalon',                sub: 'Telomerase-active tetrapeptide',    variants: [
+    { mass: '10 mg', price: 180 }, { mass: '50 mg', price: 675 } ] },
+  { cat: 'longevity', name: 'Pinealon',        slug: 'pinealon',                 sub: 'Pineal tripeptide bioregulator',    variants: [
+    { mass: '5 mg', price: 165 }, { mass: '10 mg', price: 265 }, { mass: '20 mg', price: 460 } ] },
+  { cat: 'longevity', name: 'SS-31',           slug: 'ss-31',                    sub: 'Elamipretide, mitochondrial-targeted', variants: [
+    { mass: '10 mg', price: 375 }, { mass: '50 mg', price: 1320 } ] },
 
   // ─── Cognition & Mood ────────────────────────────────────────────────
-  { cat: 'cognition', name: 'Semax',           slug: 'semax',                    sub: 'Heptapeptide nootropic',            mass: '10 mg', vials: 10, price: 230 },
-  { cat: 'cognition', name: 'Selank',          slug: 'selank',                   sub: 'Synthetic anxiolytic peptide',      mass: '10 mg', vials: 10, price: 265 },
-  { cat: 'cognition', name: 'Cerebrolysin',    slug: 'cerebrolysin',             sub: 'Neuropeptide preparation',          mass: '60 mg', vials: 6,  price: 395 },
-  { cat: 'cognition', name: 'DSIP',            slug: 'dsip',                     sub: 'Delta-sleep-inducing peptide',      mass: '5 mg',  vials: 10, price: 165 },
+  { cat: 'cognition', name: 'Semax',           slug: 'semax',                    sub: 'Heptapeptide nootropic',            variants: [
+    { mass: '5 mg', price: 150 }, { mass: '10 mg', price: 230 } ] },
+  { cat: 'cognition', name: 'Selank',          slug: 'selank',                   sub: 'Synthetic anxiolytic peptide',      variants: [
+    { mass: '5 mg', price: 150 }, { mass: '10 mg', price: 265 } ] },
+  { cat: 'cognition', name: 'Cerebrolysin',    slug: 'cerebrolysin',             sub: 'Neuropeptide preparation',          variants: [
+    { mass: '60 mg', vials: 10, price: 130 } ] },
+  { cat: 'cognition', name: 'DSIP',            slug: 'dsip',                     sub: 'Delta-sleep-inducing peptide',      variants: [
+    { mass: '5 mg', price: 165 }, { mass: '10 mg', price: 250 }, { mass: '15 mg', price: 330 } ] },
 
   // ─── Hormones, Sexual Health & Misc ──────────────────────────────────
-  { cat: 'misc',      name: 'Thymosin Alpha-1',slug: 'thymosin-alpha-1',         sub: 'Synthetic immune-modulating peptide', mass: '10 mg', vials: 10, price: 595 },
-  { cat: 'misc',      name: 'PT-141',          slug: 'pt-141',                   sub: 'Bremelanotide, melanocortin agonist',mass: '10 mg', vials: 10, price: 230 },
-  { cat: 'misc',      name: 'Oxytocin Acetate',slug: 'oxytocin-acetate',         sub: 'Synthetic mammalian neuropeptide',  mass: '2 mg',  vials: 10, price: 115 },
-  { cat: 'misc',      name: 'Melanotan-II',    slug: 'melanotan-ii',             sub: 'Synthetic alpha-MSH analog',        mass: '10 mg', vials: 10, price: 165 },
-  { cat: 'misc',      name: 'B12',             slug: 'b12-methylcobalamin',      sub: 'Methylcobalamin',                   mass: '10 ml', vials: 10, price: 200 },
+  { cat: 'misc',      name: 'Thymosin Alpha-1',slug: 'thymosin-alpha-1',         sub: 'Synthetic immune-modulating peptide', variants: [
+    { mass: '5 mg', price: 395 }, { mass: '10 mg', price: 760 } ] },
+  { cat: 'misc',      name: 'PT-141',          slug: 'pt-141',                   sub: 'Bremelanotide, melanocortin agonist',variants: [
+    { mass: '10 mg', price: 250 } ] },
+  { cat: 'misc',      name: 'Melanotan-II',    slug: 'melanotan-ii',             sub: 'Synthetic alpha-MSH analog',        variants: [
+    { mass: '10 mg', price: 215 } ] },
+  { cat: 'misc',      name: 'B12',             slug: 'b12-methylcobalamin',      sub: 'Methylcobalamin',                   variants: [
+    { mass: '10 ml', price: 200 } ] },
 
   // ─── Accessories ─────────────────────────────────────────────────────
-  { cat: 'accessory', name: 'BAC Water',       slug: 'bac-water',                sub: 'Bacteriostatic water for reconstitution', mass: '10 ml', vials: 11, price: 15 },
+  { cat: 'accessory', name: 'BAC Water',       slug: 'bac-water',                sub: 'Bacteriostatic water for reconstitution', variants: [
+    { mass: '10 ml', vials: 11, price: 15 } ] },
 ];
 
 /* ═════════════════════════════════════════════════════════════════════════
@@ -1348,8 +1419,20 @@ function escapeHtml(s) {
 }
 
 function renderCard(p) {
-  const priceFmt = p.price.toLocaleString('en-US');
-  const vials    = p.vials || 10;
+  const variants  = p.variants;
+  const def       = variants[0];                 // first size is the default selection
+  const defVials  = def.vials || 10;
+  const priceFmt  = def.price.toLocaleString('en-US');
+  const hasChoice = variants.length > 1;
+
+  const sizeControl = hasChoice
+    ? `<select class="pc-size" aria-label="Select size for ${escapeHtml(p.name)}">${
+        variants.map((v, i) =>
+          `<option value="${escapeHtml(p.slug + '|' + v.mass)}" data-price="${v.price}" data-vials="${v.vials || 10}" data-mass="${escapeHtml(v.mass)}"${i === 0 ? ' selected' : ''}>${escapeHtml(v.mass)}</option>`
+        ).join('')
+      }</select>`
+    : `<span>${escapeHtml(def.mass)}</span>`;
+
   return `
     <article class="product-card">
       <header class="product-card__meta">
@@ -1359,8 +1442,8 @@ function renderCard(p) {
         <h3 class="product-card__title">${escapeHtml(p.name)}</h3>
         <p class="product-card__subtitle">${escapeHtml(p.sub)}</p>
         <dl class="product-card__specs">
-          <div><dt>Per vial</dt><dd>${escapeHtml(p.mass)}</dd></div>
-          <div><dt>Box</dt><dd>${vials} vials</dd></div>
+          <div><dt>Per vial</dt><dd>${sizeControl}</dd></div>
+          <div><dt>Box</dt><dd class="pc-vials">${defVials} vials</dd></div>
         </dl>
       </div>
       <footer class="product-card__footer">
@@ -1371,11 +1454,11 @@ function renderCard(p) {
         <div class="product-card__actions">
           <a class="pc-btn pc-btn--ghost" href="datasheets/${escapeHtml(p.slug)}.pdf" target="_blank" rel="noopener">Data sheet</a>
           <button type="button" class="pc-btn pc-btn--primary cart-add"
-            data-key="${escapeHtml(p.slug + '|' + p.mass)}"
+            data-key="${escapeHtml(p.slug + '|' + def.mass)}"
             data-name="${escapeHtml(p.name)}"
-            data-mass="${escapeHtml(p.mass)}"
-            data-vials="${vials}"
-            data-price="${p.price}">Add to order</button>
+            data-mass="${escapeHtml(def.mass)}"
+            data-vials="${defVials}"
+            data-price="${def.price}">Add to order</button>
         </div>
       </footer>
     </article>
@@ -1430,6 +1513,28 @@ function renderJumpMenu() {
 
 renderCatalog();
 renderJumpMenu();
+
+/* ----- Size picker: update price, box count + Add button on change ----- */
+(() => {
+  const root = document.getElementById('catalog-root');
+  if (!root) return;
+  root.addEventListener('change', (e) => {
+    const sel = e.target.closest('select.pc-size');
+    if (!sel) return;
+    const card = sel.closest('.product-card');
+    const opt  = sel.options[sel.selectedIndex];
+    const price = Number(opt.dataset.price);
+    const vials = opt.dataset.vials || '10';
+    card.querySelector('.price__amount').textContent = '$' + price.toLocaleString('en-US');
+    const vEl = card.querySelector('.pc-vials');
+    if (vEl) vEl.textContent = vials + ' vials';
+    const btn = card.querySelector('.cart-add');
+    btn.dataset.key   = sel.value;
+    btn.dataset.mass  = opt.dataset.mass;
+    btn.dataset.vials = vials;
+    btn.dataset.price = String(price);
+  });
+})();
 
 /* ═════════════════════════════════════════════════════════════════════════
    CONTACT FORM  —  Web3Forms handler (identical to home page, "(catalog)"
@@ -1551,7 +1656,12 @@ renderJumpMenu();
   // Build a lookup of the current catalog keyed by slug|mass (mass disambiguates
   // products that share a slug, e.g. SS-31 10 mg vs 50 mg).
   const BY_KEY = {};
-  PRODUCTS.forEach(p => { BY_KEY[p.slug + '|' + p.mass] = p; });
+  PRODUCTS.forEach(p => p.variants.forEach(v => {
+    BY_KEY[p.slug + '|' + v.mass] = {
+      name: p.name, slug: p.slug, sub: p.sub, cat: p.cat,
+      mass: v.mass, vials: v.vials || 10, price: v.price,
+    };
+  }));
 
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + Number(n).toLocaleString('en-US');
