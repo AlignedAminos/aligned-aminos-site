@@ -1257,7 +1257,7 @@ select.pc-size option { background: var(--bg-3); color: var(--text-1); }
         <h3>Order received.</h3>
         <p id="order-success-msg">Thanks &mdash; we've got your order. Pay by Venmo below to lock it in, then we'll confirm payment and shipping. If anything's out of stock, we'll refund or swap it.</p>
         <a class="venmo-btn" id="venmo-pay" href="#" target="_blank" rel="noopener" hidden>Pay with Venmo</a>
-        <p class="venmo-sub" id="venmo-sub" hidden>Opens Venmo &mdash; keep the prefilled note so we can match your order.</p>
+        <p class="venmo-sub" id="venmo-sub" hidden><strong>Leave the prefilled Venmo note exactly as-is</strong> &mdash; it's your order number, and it's how we match your payment. Changing it will delay your order.</p>
         <div class="cart-receipt__items" id="order-receipt"></div>
         <p style="font-family:var(--font-mono); font-size:11px; color:var(--text-3);">
           This is your copy &mdash; print or save it for your records.
@@ -2069,6 +2069,9 @@ renderJumpMenu();
     const sub = $('venmo-sub');
     if (!btn) return;
     const amt  = (Math.round(Number(amount) * 100) / 100).toFixed(2);
+    // DO NOT CHANGE: the Venmo memo must always carry the order/invoice ref
+    // (AA-YYMMDD-XXXX). It is the ONLY key we use to match a payment to an
+    // order. Never repurpose this note or drop the ref. (Per Kelley.)
     const note = `Aligned Aminos ${orderRef}`;
     btn.href =
       `https://venmo.com/?txn=pay&audience=private` +
