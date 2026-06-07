@@ -1331,7 +1331,7 @@ const PRODUCTS = [
     { mass: '50 mg', price: 640 }, { mass: '60 mg', price: 740 }, { mass: '100 mg', price: 1245 },
     { mass: '120 mg', vials: 11, price: 1555 } ] },
   { cat: 'metabolic', name: 'Retatrutide',     slug: 'retatrutide',              sub: 'GLP-1 / GIP / Glucagon triple agonist', variants: [
-    { mass: '5 mg', price: 235 }, { mass: '10 mg', price: 275 }, { mass: '15 mg', price: 440 },
+    { mass: '5 mg', price: 235 }, { mass: '10 mg', price: 275 }, { mass: '15 mg', price: 440, oos: true },
     { mass: '20 mg', price: 470 }, { mass: '30 mg', price: 710 }, { mass: '40 mg', price: 945 },
     { mass: '50 mg', price: 1145 }, { mass: '60 mg', vials: 11, price: 1315 } ] },
   { cat: 'metabolic', name: 'MOTS-c',          slug: 'mots-c',                   sub: 'Mitochondrial-derived peptide',     variants: [
@@ -1496,7 +1496,7 @@ function renderCard(p) {
   const sizeControl = hasChoice
     ? `<select class="pc-size" aria-label="Select size for ${escapeHtml(p.name)}">${
         variants.map((v, i) =>
-          `<option value="${escapeHtml(p.slug + '|' + v.mass)}" data-price="${v.price}" data-vials="${v.vials || 10}" data-mass="${escapeHtml(v.mass)}"${i === 0 ? ' selected' : ''}>${escapeHtml(v.mass)}</option>`
+          `<option value="${escapeHtml(p.slug + '|' + v.mass)}" data-price="${v.price}" data-vials="${v.vials || 10}" data-mass="${escapeHtml(v.mass)}"${v.oos ? ' disabled' : ''}${i === 0 ? ' selected' : ''}>${escapeHtml(v.mass)}${v.oos ? ' — out of stock' : ''}</option>`
         ).join('')
       }</select>`
     : `<span>${escapeHtml(def.mass)}</span>`;
