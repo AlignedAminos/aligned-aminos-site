@@ -944,6 +944,20 @@ select.pc-size option { background: var(--bg-3); color: var(--text-1); }
 .zelle-copy:hover { border-color: #8a4fe0; color: #fff; }
 .zelle-copy.is-copied { border-color: #46c46a; color: #46c46a; }
 
+/* USDT (Tether) pay block — Tether green, with a network warning */
+.usdt-pay {
+  text-align: left;
+  border: 1px solid rgba(38, 161, 123, 0.45);
+  background: rgba(38, 161, 123, 0.08);
+  border-radius: 10px; padding: 14px 16px; margin: 0 0 16px;
+}
+.usdt-warn {
+  margin: 0 0 12px; padding: 9px 11px; border-radius: 7px;
+  background: rgba(255, 176, 32, 0.10); border: 1px solid rgba(255, 176, 32, 0.38);
+  color: var(--ember-gold); font-size: 12px; line-height: 1.5;
+}
+.usdt-addr { font-family: var(--font-mono); font-size: 12px; line-height: 1.4; }
+
 /* Checkout (order details) fields inside drawer */
 .cart-form { display: flex; flex-direction: column; gap: 14px; }
 .cart-form__grid {
@@ -1317,7 +1331,7 @@ select.pc-size option { background: var(--bg-3); color: var(--text-1); }
       </div>
       <p class="cart-foot__note">
         Submitting sends your order to Aligned Aminos. On the next screen you can pay
-        by Venmo or Zelle to lock it in &mdash; we confirm stock and shipping once payment arrives.
+        by Venmo, Zelle, or USDT to lock it in &mdash; we confirm stock and shipping once payment arrives.
       </p>
       <div class="cart-foot__row">
         <button type="button" class="cart-btn cart-btn--ghost" id="order-back">&larr; Back</button>
@@ -1332,7 +1346,7 @@ select.pc-size option { background: var(--bg-3); color: var(--text-1); }
       <div class="cart-receipt">
         <span class="cart-receipt__icon" aria-hidden="true">&check;</span>
         <h3>Order received.</h3>
-        <p id="order-success-msg">Thanks &mdash; we've got your order. Pay by Venmo or Zelle below to lock it in, then we'll confirm payment and shipping. If anything's out of stock, we'll refund or swap it.</p>
+        <p id="order-success-msg">Thanks &mdash; we've got your order. Pay by Venmo, Zelle, or USDT below to lock it in, then we'll confirm payment and shipping. If anything's out of stock, we'll refund or swap it.</p>
         <p class="venmo-sub" id="venmo-holding">Please remit payment to our holding company, <strong>Vagabond Muscle</strong>. To confirm you've got the right account, the recipient's phone number ends in <strong>6769</strong>.</p>
         <a class="venmo-btn" id="venmo-pay" href="#" target="_blank" rel="noopener" hidden>Pay with Venmo</a>
         <p class="venmo-sub" id="venmo-sub" hidden><strong>Leave the prefilled Venmo note exactly as-is</strong> &mdash; it's your order number, and it's how we match your payment. Changing it will delay your order.</p>
@@ -1361,6 +1375,31 @@ select.pc-size option { background: var(--bg-3); color: var(--text-1); }
             </div>
           </dl>
           <p class="venmo-sub" style="text-align:left;"><strong>Put the memo exactly as shown</strong> &mdash; it's your order number, and it's how we match your payment. Changing it will delay your order.</p>
+        </div>
+
+        <div class="pay-divider" id="pay-divider-usdt" hidden><span>or pay with USDT (Tether)</span></div>
+        <div class="usdt-pay" id="usdt-pay" hidden>
+          <p class="usdt-warn">Send <strong>USDT only</strong>, on the <strong>Ethereum (ERC-20)</strong> network. Sending a different coin or network can lose the funds permanently.</p>
+          <dl class="zelle-rows">
+            <div class="zelle-row">
+              <dt>Token</dt>
+              <dd>USDT (Tether)</dd>
+            </div>
+            <div class="zelle-row">
+              <dt>Network</dt>
+              <dd>Ethereum (ERC-20)</dd>
+            </div>
+            <div class="zelle-row">
+              <dt>Amount</dt>
+              <dd id="usdt-amount">0 USDT</dd>
+            </div>
+            <div class="zelle-row">
+              <dt>Wallet address</dt>
+              <dd><span id="usdt-address" class="usdt-addr">0x2a92023d91dda9698dfe80d942679537ad61368e</span>
+                <button type="button" class="zelle-copy" data-copy="usdt-address" aria-label="Copy USDT wallet address">Copy</button></dd>
+            </div>
+          </dl>
+          <p class="venmo-sub" style="text-align:left;">Send the <strong>exact amount</strong> shown &mdash; it's how we match your payment to your order. Your order is confirmed once the transfer shows on-chain.</p>
         </div>
 
         <div class="cart-receipt__items" id="order-receipt"></div>
@@ -1830,6 +1869,11 @@ renderJumpMenu();
   const VENMO_HANDLE = 'vagabondmuscle'; // holding company Venmo (Vagabond Muscle)
   const ZELLE_EMAIL  = 'jordan.d.schwartz@gmail.com'; // Zelle recipient (Jordan Schwartz)
   const ZELLE_NAME   = 'Jordan Schwartz';
+  // USDT (Tether) — dollar-pegged, so amount = USD total 1:1. EVM address; the
+  // network is fixed to Ethereum (ERC-20) per Kelley. There is no on-chain memo,
+  // so payments are matched by the exact amount + the order email below.
+  const USDT_ADDRESS = '0x2a92023d91dda9698dfe80d942679537ad61368e';
+  const USDT_NETWORK = 'Ethereum (ERC-20)';
   let appliedCode = null;                 // matched code (uppercased) or null
 
   // Build a lookup of the current catalog keyed by slug|mass (mass disambiguates
@@ -2208,10 +2252,10 @@ renderJumpMenu();
   $('order-done').addEventListener('click', closeDrawer);
   $('order-print').addEventListener('click', () => window.print());
 
-  /* Copy buttons on the Zelle pay block (email + memo). */
-  const zelleWrap = $('zelle-pay');
-  if (zelleWrap) {
-    zelleWrap.addEventListener('click', (e) => {
+  /* Copy buttons on the pay blocks (Zelle email/memo + USDT address). */
+  const successWrap = $('cart-view-success');
+  if (successWrap) {
+    successWrap.addEventListener('click', (e) => {
       const btn = e.target.closest('.zelle-copy');
       if (!btn) return;
       const src = $(btn.dataset.copy);
@@ -2292,6 +2336,21 @@ renderJumpMenu();
     $('zelle-email').textContent  = ZELLE_EMAIL;
     $('zelle-amount').textContent = fmtD(amount);
     $('zelle-memo').textContent   = `Aligned Aminos ${orderRef}`;
+    wrap.hidden = false;
+    if (divider) divider.hidden = false;
+  }
+
+  /* ----- USDT (Tether) pay (success screen) ----- */
+  // USDT ≈ $1, so the amount is just the dollar total. We show the wallet,
+  // the EXACT amount, and the network (sending on the wrong network can lose
+  // the funds). No deep-link / memo — Jordan matches by amount.
+  function setupUsdt(orderRef, amount) {
+    const wrap = $('usdt-pay');
+    const divider = $('pay-divider-usdt');
+    if (!wrap) return;
+    const amt = (Math.round(Number(amount) * 100) / 100).toFixed(2);
+    $('usdt-amount').textContent  = `${amt} USDT`;
+    $('usdt-address').textContent = USDT_ADDRESS;
     wrap.hidden = false;
     if (divider) divider.hidden = false;
   }
@@ -2392,11 +2451,12 @@ ${notes || '(none)'}
 RUO acknowledged: Yes
 
 PAYMENT (customer pays online at checkout)
-The customer was shown two options for ${fmtD(total)}, both using the
-memo "Aligned Aminos ${orderRef}":
-  - Venmo: @${VENMO_HANDLE} (Vagabond Muscle)
-  - Zelle: ${ZELLE_EMAIL} (${ZELLE_NAME})
-Check BOTH for an incoming payment with that ref, then confirm stock and ship.
+The customer was shown three options for ${fmtD(total)}:
+  - Venmo: @${VENMO_HANDLE} (Vagabond Muscle) - memo "Aligned Aminos ${orderRef}"
+  - Zelle: ${ZELLE_EMAIL} (${ZELLE_NAME}) - memo "Aligned Aminos ${orderRef}"
+  - USDT (Tether) on ${USDT_NETWORK}: ${USDT_ADDRESS}
+    expected ${(Math.round(Number(total) * 100) / 100).toFixed(2)} USDT (no on-chain memo - match by amount)
+Check ALL THREE for an incoming payment, then confirm stock and ship.
 No invoice needs to be generated for an order paid online.
 
 ------------------------------------------------------------
@@ -2443,6 +2503,7 @@ ${payloadBlock}`;
         $('order-receipt').innerHTML = receiptHtml(orderRef);
         setupVenmoButton(orderRef, total);
         setupZelle(orderRef, total);
+        setupUsdt(orderRef, total);
         showView('success');
         cart = [];
         appliedCode = null;
