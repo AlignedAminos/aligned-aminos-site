@@ -912,6 +912,38 @@ select.pc-size option { background: var(--bg-3); color: var(--text-1); }
 .venmo-btn:hover { background: #0a78d0; box-shadow: 0 0 24px rgba(0,140,255,0.40); transform: translateY(-1px); }
 .venmo-sub { margin: 0 0 16px; font-family: var(--font-mono); font-size: 10px; line-height: 1.55; color: var(--text-3); text-align: center; }
 
+/* Zelle pay (success screen) — manual bank-app transfer, brand purple */
+.pay-divider {
+  display: flex; align-items: center; gap: 12px;
+  margin: 8px 0 14px;
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--text-3);
+}
+.pay-divider::before, .pay-divider::after { content: ""; flex: 1; height: 1px; background: var(--border-subtle); }
+.zelle-pay {
+  text-align: left;
+  border: 1px solid rgba(109, 30, 212, 0.40);
+  background: rgba(109, 30, 212, 0.08);
+  border-radius: 10px; padding: 14px 16px; margin: 0 0 16px;
+}
+.zelle-pay__intro { margin: 0 0 10px; font-size: 13px; line-height: 1.5; color: var(--text-2); }
+.zelle-rows { margin: 0; }
+.zelle-row {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 8px 0; border-top: 1px solid var(--border-subtle);
+}
+.zelle-row:first-child { border-top: none; }
+.zelle-row dt { margin: 0; font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); }
+.zelle-row dd { margin: 0; display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-1); text-align: right; word-break: break-all; }
+.zelle-copy {
+  appearance: none; -webkit-appearance: none;
+  border: 1px solid var(--border-strong); background: transparent; color: var(--text-2);
+  border-radius: 6px; padding: 3px 9px; font-family: var(--font-mono); font-size: 11px; cursor: pointer;
+  transition: border-color 140ms ease, color 140ms ease;
+}
+.zelle-copy:hover { border-color: #8a4fe0; color: #fff; }
+.zelle-copy.is-copied { border-color: #46c46a; color: #46c46a; }
+
 /* Checkout (order details) fields inside drawer */
 .cart-form { display: flex; flex-direction: column; gap: 14px; }
 .cart-form__grid {
@@ -938,6 +970,13 @@ select.pc-size option { background: var(--bg-3); color: var(--text-1); }
   border-radius: 6px;
 }
 .cart-status a { color: var(--ember); text-decoration: none; }
+
+/* Email gate (checkout step 1.5) */
+.cart-email-gate { padding: 16px 24px 0; }
+.cart-email-gate h3 {
+  margin: 8px 0 8px; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; color: var(--text-1);
+}
+.cart-email-gate p { margin: 0 0 20px; font-size: 14px; line-height: 1.6; color: var(--text-2); }
 
 /* Success / receipt */
 .cart-receipt { padding: 8px 24px 24px; }
@@ -999,6 +1038,8 @@ select.pc-size option { background: var(--bg-3); color: var(--text-1); }
   .product-card__cta:hover { transform: none; }
 }
 </style>
+<!-- 18+ age gate — runs before the body paints. Self-contained, no backend. -->
+<script src="age-gate.js"></script>
 </head>
 <body>
 
@@ -1156,6 +1197,42 @@ select.pc-size option { background: var(--bg-3); color: var(--text-1); }
     </div>
   </div>
 
+  <!-- View 1.5: email gate — required before the pay screen. Captures the lead
+       the moment they head to checkout, even if they never finish the order. -->
+  <div class="cart-view" id="cart-view-email" hidden>
+    <div class="cart-scroll">
+      <div class="cart-email-gate">
+        <h3>One step before checkout.</h3>
+        <p>Enter your email to continue. We&rsquo;ll use it to confirm your order and
+          send the occasional research update &mdash; it&rsquo;s required to reach the
+          payment step.</p>
+        <form class="cart-form" id="email-gate-form" novalidate>
+          <div class="field">
+            <label for="eg-email">Email <span class="field__required">*</span></label>
+            <input id="eg-email" name="email" type="email" required autocomplete="email" placeholder="you@domain.com" />
+          </div>
+          <!-- Honeypot -->
+          <div style="position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden;" aria-hidden="true">
+            <label>Don't fill this out if you're human:
+              <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" />
+            </label>
+          </div>
+          <div class="cart-status" id="email-gate-status" role="status" aria-live="polite"></div>
+        </form>
+      </div>
+    </div>
+    <div class="cart-foot">
+      <p class="cart-foot__note">
+        No payment is taken here. The next screen collects your shipping details and
+        your order number for payment.
+      </p>
+      <div class="cart-foot__row">
+        <button type="button" class="cart-btn cart-btn--ghost" id="email-gate-back">&larr; Back</button>
+        <button type="submit" form="email-gate-form" class="cart-btn cart-btn--primary" id="email-gate-submit">Continue &rarr;</button>
+      </div>
+    </div>
+  </div>
+
   <!-- View 2: order details (contact + shipping) -->
   <div class="cart-view" id="cart-view-details" hidden>
     <div class="cart-scroll">
@@ -1240,7 +1317,7 @@ select.pc-size option { background: var(--bg-3); color: var(--text-1); }
       </div>
       <p class="cart-foot__note">
         Submitting sends your order to Aligned Aminos. On the next screen you can pay
-        by Venmo to lock it in &mdash; we confirm stock and shipping once payment arrives.
+        by Venmo or Zelle to lock it in &mdash; we confirm stock and shipping once payment arrives.
       </p>
       <div class="cart-foot__row">
         <button type="button" class="cart-btn cart-btn--ghost" id="order-back">&larr; Back</button>
@@ -1255,10 +1332,37 @@ select.pc-size option { background: var(--bg-3); color: var(--text-1); }
       <div class="cart-receipt">
         <span class="cart-receipt__icon" aria-hidden="true">&check;</span>
         <h3>Order received.</h3>
-        <p id="order-success-msg">Thanks &mdash; we've got your order. Pay by Venmo below to lock it in, then we'll confirm payment and shipping. If anything's out of stock, we'll refund or swap it.</p>
+        <p id="order-success-msg">Thanks &mdash; we've got your order. Pay by Venmo or Zelle below to lock it in, then we'll confirm payment and shipping. If anything's out of stock, we'll refund or swap it.</p>
         <p class="venmo-sub" id="venmo-holding">Please remit payment to our holding company, <strong>Vagabond Muscle</strong>. To confirm you've got the right account, the recipient's phone number ends in <strong>6769</strong>.</p>
         <a class="venmo-btn" id="venmo-pay" href="#" target="_blank" rel="noopener" hidden>Pay with Venmo</a>
         <p class="venmo-sub" id="venmo-sub" hidden><strong>Leave the prefilled Venmo note exactly as-is</strong> &mdash; it's your order number, and it's how we match your payment. Changing it will delay your order.</p>
+
+        <div class="pay-divider" id="pay-divider" hidden><span>or pay with Zelle</span></div>
+        <div class="zelle-pay" id="zelle-pay" hidden>
+          <p class="zelle-pay__intro">In your bank app, choose <strong>Zelle</strong> and send to the details below.</p>
+          <dl class="zelle-rows">
+            <div class="zelle-row">
+              <dt>Recipient</dt>
+              <dd id="zelle-name">Jordan Schwartz</dd>
+            </div>
+            <div class="zelle-row">
+              <dt>Zelle email</dt>
+              <dd><span id="zelle-email">jordan.d.schwartz@gmail.com</span>
+                <button type="button" class="zelle-copy" data-copy="zelle-email" aria-label="Copy Zelle email">Copy</button></dd>
+            </div>
+            <div class="zelle-row">
+              <dt>Amount</dt>
+              <dd id="zelle-amount">$0</dd>
+            </div>
+            <div class="zelle-row">
+              <dt>Memo</dt>
+              <dd><span id="zelle-memo">Aligned Aminos</span>
+                <button type="button" class="zelle-copy" data-copy="zelle-memo" aria-label="Copy Zelle memo">Copy</button></dd>
+            </div>
+          </dl>
+          <p class="venmo-sub" style="text-align:left;"><strong>Put the memo exactly as shown</strong> &mdash; it's your order number, and it's how we match your payment. Changing it will delay your order.</p>
+        </div>
+
         <div class="cart-receipt__items" id="order-receipt"></div>
         <p style="font-family:var(--font-mono); font-size:11px; color:var(--text-3);">
           This is your copy &mdash; print or save it for your records.
@@ -1724,6 +1828,8 @@ renderJumpMenu();
     'HAYLEY10': 'Hayley McIntosh',
   };
   const VENMO_HANDLE = 'vagabondmuscle'; // holding company Venmo (Vagabond Muscle)
+  const ZELLE_EMAIL  = 'jordan.d.schwartz@gmail.com'; // Zelle recipient (Jordan Schwartz)
+  const ZELLE_NAME   = 'Jordan Schwartz';
   let appliedCode = null;                 // matched code (uppercased) or null
 
   // Build a lookup of the current catalog keyed by slug|mass (mass disambiguates
@@ -1940,10 +2046,12 @@ renderJumpMenu();
   /* ----- View switching (list / details / success) ----- */
   function showView(name) {
     $('cart-view-list').hidden    = name !== 'list';
+    $('cart-view-email').hidden   = name !== 'email';
     $('cart-view-details').hidden = name !== 'details';
     $('cart-view-success').hidden = name !== 'success';
     $('cart-drawer-title').textContent =
-      name === 'details' ? 'Order details' : name === 'success' ? 'Confirmed' : 'Your order';
+      name === 'email' ? 'Your email' : name === 'details' ? 'Order details' :
+      name === 'success' ? 'Confirmed' : 'Your order';
   }
 
   /* ----- Render line items ----- */
@@ -2025,13 +2133,98 @@ renderJumpMenu();
     else if (e.target.closest('.cart-line__remove')) setQty(key, 0);
   });
 
+  /* ----- Email gate (required before the pay screen) -----------------------
+     Captures the customer's email the moment they head to checkout — and fires
+     it to the inbox right away, so an abandoned cart still leaves us the lead.
+     Stored locally so returning buyers aren't re-asked. This is lead capture,
+     not a login: a static site can't truly hold accounts, but it CAN make the
+     email the price of admission to the payment step. */
+  const EMAIL_KEY = 'aa_email_v1';
+  const EMAIL_RE  = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  function getSavedEmail() {
+    try { return localStorage.getItem(EMAIL_KEY) || ''; } catch (e) { return ''; }
+  }
+
+  function sendCheckoutLead(email) {
+    // Fire-and-forget — never block the customer if Web3Forms is slow/down.
+    try {
+      fetch(ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          access_key: ACCESS_KEY,
+          subject: `WEB CHECKOUT LEAD: ${email}`,
+          from_name: 'Aligned Aminos Website',
+          botcheck: '',
+          email: email,
+          note: 'Reached the checkout email step. May or may not have completed the order.',
+          submitted_from: `${location.host}${location.pathname} on ${new Date().toISOString().slice(0,16).replace('T',' ')} UTC`,
+        }),
+      }).catch(() => {});
+    } catch (e) {}
+  }
+
+  function goToDetails(email) {
+    const ofEmail = $('of-email');
+    if (ofEmail && email) ofEmail.value = email;   // prefill so they don't retype it
+    showView('details');
+  }
+
   /* ----- Navigation between views ----- */
-  $('cart-continue').addEventListener('click', () => { if (cart.length) showView('details'); });
+  $('cart-continue').addEventListener('click', () => {
+    if (!cart.length) return;
+    const saved = getSavedEmail();
+    if (EMAIL_RE.test(saved)) {
+      goToDetails(saved);                  // already gave us an email — skip the gate
+    } else {
+      showView('email');
+      const eg = $('eg-email');
+      if (eg) setTimeout(() => eg.focus(), 60);
+    }
+  });
+
+  $('email-gate-back').addEventListener('click', () => showView('list'));
+  $('email-gate-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const f = $('email-gate-form');
+    const email = (f.email.value || '').trim();
+    const bot   = f.botcheck && f.botcheck.checked;
+    const st    = $('email-gate-status');
+    if (!EMAIL_RE.test(email)) {
+      st.innerHTML = 'Please enter a valid email to continue.';
+      return;
+    }
+    st.innerHTML = '';
+    if (bot) { goToDetails(email); return; }   // bot caught: advance, don't capture
+    try { localStorage.setItem(EMAIL_KEY, email); } catch (e) {}
+    sendCheckoutLead(email);
+    goToDetails(email);
+  });
+
   $('order-back').addEventListener('click', () => showView('list'));
   $('referral-apply').addEventListener('click', applyReferral);
   $('of-referral').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); applyReferral(); } });
   $('order-done').addEventListener('click', closeDrawer);
   $('order-print').addEventListener('click', () => window.print());
+
+  /* Copy buttons on the Zelle pay block (email + memo). */
+  const zelleWrap = $('zelle-pay');
+  if (zelleWrap) {
+    zelleWrap.addEventListener('click', (e) => {
+      const btn = e.target.closest('.zelle-copy');
+      if (!btn) return;
+      const src = $(btn.dataset.copy);
+      const text = src ? src.textContent.trim() : '';
+      if (!text || !navigator.clipboard) return;
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = 'Copied';
+        btn.classList.add('is-copied');
+        setTimeout(() => { btn.textContent = orig; btn.classList.remove('is-copied'); }, 1400);
+      }).catch(() => {});
+    });
+  }
 
   /* ----- Open / close wiring ----- */
   $('cart-toggle').addEventListener('click', () => { renderLines(); showView('list'); openDrawer(); });
@@ -2085,6 +2278,22 @@ renderJumpMenu();
     btn.textContent = `Pay ${fmtD(amount)} with Venmo`;
     btn.hidden = false;
     if (sub) sub.hidden = false;
+  }
+
+  /* ----- Zelle pay (success screen) ----- */
+  // Zelle has no payment deep-link — the customer sends manually in their bank
+  // app. We just display the recipient, amount, and the SAME order-ref memo as
+  // Venmo (DO NOT CHANGE: the memo is the only key we match payments on).
+  function setupZelle(orderRef, amount) {
+    const wrap = $('zelle-pay');
+    const divider = $('pay-divider');
+    if (!wrap) return;
+    $('zelle-name').textContent   = ZELLE_NAME;
+    $('zelle-email').textContent  = ZELLE_EMAIL;
+    $('zelle-amount').textContent = fmtD(amount);
+    $('zelle-memo').textContent   = `Aligned Aminos ${orderRef}`;
+    wrap.hidden = false;
+    if (divider) divider.hidden = false;
   }
 
   /* ----- Submit the order ----- */
@@ -2183,9 +2392,11 @@ ${notes || '(none)'}
 RUO acknowledged: Yes
 
 PAYMENT (customer pays online at checkout)
-The customer was shown a "Pay with Venmo" button for ${fmtD(total)},
-note prefilled "Aligned Aminos ${orderRef}". Check the @${VENMO_HANDLE}
-Venmo for an incoming payment with that ref. Then: confirm stock and ship.
+The customer was shown two options for ${fmtD(total)}, both using the
+memo "Aligned Aminos ${orderRef}":
+  - Venmo: @${VENMO_HANDLE} (Vagabond Muscle)
+  - Zelle: ${ZELLE_EMAIL} (${ZELLE_NAME})
+Check BOTH for an incoming payment with that ref, then confirm stock and ship.
 No invoice needs to be generated for an order paid online.
 
 ------------------------------------------------------------
@@ -2231,6 +2442,7 @@ ${payloadBlock}`;
         // Build the success UI from the live order BEFORE clearing the cart.
         $('order-receipt').innerHTML = receiptHtml(orderRef);
         setupVenmoButton(orderRef, total);
+        setupZelle(orderRef, total);
         showView('success');
         cart = [];
         appliedCode = null;
