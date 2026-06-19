@@ -374,6 +374,93 @@ p.lede {
   line-height: 1.5;
 }
 
+/* ===== Testimonials ===== */
+.quotes {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin-top: 48px;
+}
+@media (min-width: 760px) {
+  .quotes { grid-template-columns: repeat(2, 1fr); }
+}
+.quote {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  padding: 32px;
+  background: linear-gradient(180deg, var(--bg-1) 0%, var(--bg-base) 100%);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 240ms ease, border-color 240ms ease;
+}
+.quote::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0; top: 0; height: 2px;
+  background: var(--ember);
+  opacity: 0.6;
+  transition: opacity 240ms ease;
+}
+.quote::after {
+  content: "";
+  position: absolute;
+  inset: -1px; z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(circle at 50% 0%, var(--ember-glow), transparent 60%);
+  opacity: 0;
+  transition: opacity 400ms ease;
+}
+.quote:hover {
+  transform: translateY(-3px);
+  border-color: var(--ember);
+}
+.quote:hover::before { opacity: 1; }
+.quote:hover::after  { opacity: 0.18; }
+
+.quote__mark {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 64px;
+  line-height: 0.6;
+  color: var(--ember);
+  opacity: 0.35;
+  margin-bottom: 12px;
+}
+.quote__text {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.5;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--text-1);
+  flex-grow: 1;
+}
+.quote__attr {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-subtle);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.quote__attr-dot {
+  width: 6px; height: 6px;
+  border-radius: 9999px;
+  background: var(--ember);
+  box-shadow: 0 0 8px var(--ember-glow);
+}
+@media (prefers-reduced-motion: reduce) {
+  .quote, .quote::before, .quote::after { transition: none; }
+  .quote:hover { transform: none; }
+}
+
 /* ===== The Rule (founder block, simplified) ===== */
 .rule {
   position: relative;
@@ -1075,6 +1162,36 @@ p.lede {
         </footer>
       </article>
 
+    </div>
+  </section>
+
+  <!-- ===== Testimonials ===== -->
+  <section class="section">
+    <span class="eyebrow">In Their Words</span>
+    <h2>What customers are telling us.</h2>
+
+    <div class="quotes">
+      <figure class="quote">
+        <div class="quote__mark" aria-hidden="true">&ldquo;</div>
+        <blockquote class="quote__text">
+          That was the easiest experience I&rsquo;ve ever had ordering peptides.
+        </blockquote>
+        <figcaption class="quote__attr">
+          <span class="quote__attr-dot" aria-hidden="true"></span>
+          Verified customer
+        </figcaption>
+      </figure>
+
+      <figure class="quote">
+        <div class="quote__mark" aria-hidden="true">&ldquo;</div>
+        <blockquote class="quote__text">
+          Thank you so much. Our package arrived today &mdash; I so appreciate you and Kelley.
+        </blockquote>
+        <figcaption class="quote__attr">
+          <span class="quote__attr-dot" aria-hidden="true"></span>
+          Verified customer
+        </figcaption>
+      </figure>
     </div>
   </section>
 
