@@ -912,14 +912,30 @@ select.pc-size option { background: var(--bg-3); color: var(--text-1); }
 .venmo-btn:hover { background: #0a78d0; box-shadow: 0 0 24px rgba(0,140,255,0.40); transform: translateY(-1px); }
 .venmo-sub { margin: 0 0 16px; font-family: var(--font-mono); font-size: 10px; line-height: 1.55; color: var(--text-3); text-align: center; }
 
-/* Zelle pay (success screen) — manual bank-app transfer, brand purple */
-.pay-divider {
-  display: flex; align-items: center; gap: 12px;
-  margin: 8px 0 14px;
-  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em;
-  text-transform: uppercase; color: var(--text-3);
+/* Payment-method selector (success screen) — customer picks one; the chosen
+   method's recipient details reveal only then (nothing personal sits on the
+   page by default). */
+.pay-choose {
+  margin: 4px 0 8px; font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3);
 }
-.pay-divider::before, .pay-divider::after { content: ""; flex: 1; height: 1px; background: var(--border-subtle); }
+.pay-methods { display: flex; gap: 8px; margin: 0 0 14px; }
+.pay-method {
+  appearance: none; -webkit-appearance: none; cursor: pointer;
+  flex: 1; padding: 11px 8px; border-radius: 8px;
+  border: 1px solid var(--border-strong); background: transparent; color: var(--text-2);
+  font-family: var(--font-sans); font-size: 14px; font-weight: 600; letter-spacing: 0.01em;
+  transition: border-color 140ms ease, color 140ms ease, background-color 140ms ease;
+}
+.pay-method:hover { border-color: var(--ember); color: var(--text-1); }
+.pay-method.is-active {
+  border-color: var(--ember); color: #fff;
+  background: rgba(255, 122, 32, 0.12);
+  box-shadow: 0 0 18px rgba(255, 122, 32, 0.18);
+}
+.pay-block { margin: 0; }
+
+/* Zelle pay (success screen) — manual bank-app transfer, brand purple */
 .zelle-pay {
   text-align: left;
   border: 1px solid rgba(109, 30, 212, 0.40);
@@ -1346,13 +1362,23 @@ select.pc-size option { background: var(--bg-3); color: var(--text-1); }
       <div class="cart-receipt">
         <span class="cart-receipt__icon" aria-hidden="true">&check;</span>
         <h3>Order received.</h3>
-        <p id="order-success-msg">Thanks &mdash; we've got your order. Pay by Venmo, Zelle, or USDT below to lock it in, then we'll confirm payment and shipping. If anything's out of stock, we'll refund or swap it.</p>
-        <p class="venmo-sub" id="venmo-holding">Please remit payment to our holding company, <strong>Vagabond Muscle</strong>. To confirm you've got the right account, the recipient's phone number ends in <strong>6769</strong>.</p>
-        <a class="venmo-btn" id="venmo-pay" href="#" target="_blank" rel="noopener" hidden>Pay with Venmo</a>
-        <p class="venmo-sub" id="venmo-sub" hidden><strong>Leave the prefilled Venmo note exactly as-is</strong> &mdash; it's your order number, and it's how we match your payment. Changing it will delay your order.</p>
+        <p id="order-success-msg">Thanks &mdash; we've got your order. Choose how you'd like to pay below to lock it in, then we'll confirm payment and shipping. If anything's out of stock, we'll refund or swap it.</p>
 
-        <div class="pay-divider" id="pay-divider" hidden><span>or pay with Zelle</span></div>
-        <div class="zelle-pay" id="zelle-pay" hidden>
+        <p class="pay-choose">Choose how to pay:</p>
+        <div class="pay-methods" id="pay-methods" role="group" aria-label="Choose a payment method">
+          <button type="button" class="pay-method" data-method="venmo" aria-pressed="false">Venmo</button>
+          <button type="button" class="pay-method" data-method="zelle" aria-pressed="false">Zelle</button>
+          <button type="button" class="pay-method" data-method="usdt" aria-pressed="false">USDT</button>
+        </div>
+
+        <div class="pay-block" id="pay-block-venmo" hidden>
+          <p class="venmo-sub" id="venmo-holding">Please remit payment to our holding company, <strong>Vagabond Muscle</strong>. To confirm you've got the right account, the recipient's phone number ends in <strong>6769</strong>.</p>
+          <a class="venmo-btn" id="venmo-pay" href="#" target="_blank" rel="noopener">Pay with Venmo</a>
+          <p class="venmo-sub" id="venmo-sub"><strong>Leave the prefilled Venmo note exactly as-is</strong> &mdash; it's your order number, and it's how we match your payment. Changing it will delay your order.</p>
+        </div>
+
+        <div class="pay-block" id="pay-block-zelle" hidden>
+          <div class="zelle-pay" id="zelle-pay">
           <p class="zelle-pay__intro">In your bank app, choose <strong>Zelle</strong> and send to the details below.</p>
           <dl class="zelle-rows">
             <div class="zelle-row">
@@ -1361,7 +1387,7 @@ select.pc-size option { background: var(--bg-3); color: var(--text-1); }
             </div>
             <div class="zelle-row">
               <dt>Zelle email</dt>
-              <dd><span id="zelle-email">jordan.d.schwartz@gmail.com</span>
+              <dd><span id="zelle-email">alignedaminos@proton.me</span>
                 <button type="button" class="zelle-copy" data-copy="zelle-email" aria-label="Copy Zelle email">Copy</button></dd>
             </div>
             <div class="zelle-row">
@@ -1375,10 +1401,11 @@ select.pc-size option { background: var(--bg-3); color: var(--text-1); }
             </div>
           </dl>
           <p class="venmo-sub" style="text-align:left;"><strong>Put the memo exactly as shown</strong> &mdash; it's your order number, and it's how we match your payment. Changing it will delay your order.</p>
+          </div>
         </div>
 
-        <div class="pay-divider" id="pay-divider-usdt" hidden><span>or pay with USDT (Tether)</span></div>
-        <div class="usdt-pay" id="usdt-pay" hidden>
+        <div class="pay-block" id="pay-block-usdt" hidden>
+          <div class="usdt-pay" id="usdt-pay">
           <p class="usdt-warn">Send <strong>USDT only</strong>, on the <strong>Ethereum (ERC-20)</strong> network. Sending a different coin or network can lose the funds permanently.</p>
           <dl class="zelle-rows">
             <div class="zelle-row">
@@ -1400,6 +1427,7 @@ select.pc-size option { background: var(--bg-3); color: var(--text-1); }
             </div>
           </dl>
           <p class="venmo-sub" style="text-align:left;">Send the <strong>exact amount</strong> shown &mdash; it's how we match your payment to your order. Your order is confirmed once the transfer shows on-chain.</p>
+          </div>
         </div>
 
         <div class="cart-receipt__items" id="order-receipt"></div>
@@ -1867,7 +1895,7 @@ renderJumpMenu();
     'HAYLEY10': 'Hayley McIntosh',
   };
   const VENMO_HANDLE = 'vagabondmuscle'; // holding company Venmo (Vagabond Muscle)
-  const ZELLE_EMAIL  = 'jordan.d.schwartz@gmail.com'; // Zelle recipient (Jordan Schwartz)
+  const ZELLE_EMAIL  = 'alignedaminos@proton.me'; // Zelle recipient (enrolled under Jordan Schwartz's bank)
   const ZELLE_NAME   = 'Jordan Schwartz';
   // USDT (Tether) — dollar-pegged, so amount = USD total 1:1. EVM address; the
   // network is fixed to Ethereum (ERC-20) per Kelley. There is no on-chain memo,
@@ -2256,6 +2284,9 @@ renderJumpMenu();
   const successWrap = $('cart-view-success');
   if (successWrap) {
     successWrap.addEventListener('click', (e) => {
+      // Payment-method selector — reveal only the chosen method's details.
+      const methodBtn = e.target.closest('.pay-method');
+      if (methodBtn) { selectPayMethod(methodBtn.dataset.method); return; }
       const btn = e.target.closest('.zelle-copy');
       if (!btn) return;
       const src = $(btn.dataset.copy);
@@ -2304,10 +2335,36 @@ renderJumpMenu();
     return rows + `<div class="ln sub"><span>Order total (free shipping)</span><span>${fmt(subtotal())}</span></div>`;
   }
 
+  /* ----- Payment-method selector (success screen) ----- */
+  // Recipient details (Venmo holding co., Zelle email, USDT wallet) stay hidden
+  // until the customer picks a method — nothing personal sits on the page by
+  // default. Each setup* fn below just populates its block; this controls which
+  // one is visible.
+  const PAY_METHODS = ['venmo', 'zelle', 'usdt'];
+  function selectPayMethod(method) {
+    PAY_METHODS.forEach((m) => {
+      const block = $(`pay-block-${m}`);
+      const btn = document.querySelector(`.pay-method[data-method="${m}"]`);
+      const on = (m === method);
+      if (block) block.hidden = !on;
+      if (btn) {
+        btn.classList.toggle('is-active', on);
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      }
+    });
+  }
+  function resetPaySelection() {
+    PAY_METHODS.forEach((m) => {
+      const block = $(`pay-block-${m}`);
+      const btn = document.querySelector(`.pay-method[data-method="${m}"]`);
+      if (block) block.hidden = true;
+      if (btn) { btn.classList.remove('is-active'); btn.setAttribute('aria-pressed', 'false'); }
+    });
+  }
+
   /* ----- Venmo pay button (success screen) ----- */
   function setupVenmoButton(orderRef, amount) {
     const btn = $('venmo-pay');
-    const sub = $('venmo-sub');
     if (!btn) return;
     const amt  = (Math.round(Number(amount) * 100) / 100).toFixed(2);
     // DO NOT CHANGE: the Venmo memo must always carry the order/invoice ref
@@ -2320,8 +2377,6 @@ renderJumpMenu();
       `&amount=${amt}` +
       `&note=${encodeURIComponent(note)}`;
     btn.textContent = `Pay ${fmtD(amount)} with Venmo`;
-    btn.hidden = false;
-    if (sub) sub.hidden = false;
   }
 
   /* ----- Zelle pay (success screen) ----- */
@@ -2330,14 +2385,11 @@ renderJumpMenu();
   // Venmo (DO NOT CHANGE: the memo is the only key we match payments on).
   function setupZelle(orderRef, amount) {
     const wrap = $('zelle-pay');
-    const divider = $('pay-divider');
     if (!wrap) return;
     $('zelle-name').textContent   = ZELLE_NAME;
     $('zelle-email').textContent  = ZELLE_EMAIL;
     $('zelle-amount').textContent = fmtD(amount);
     $('zelle-memo').textContent   = `Aligned Aminos ${orderRef}`;
-    wrap.hidden = false;
-    if (divider) divider.hidden = false;
   }
 
   /* ----- USDT (Tether) pay (success screen) ----- */
@@ -2346,13 +2398,10 @@ renderJumpMenu();
   // the funds). No deep-link / memo — Jordan matches by amount.
   function setupUsdt(orderRef, amount) {
     const wrap = $('usdt-pay');
-    const divider = $('pay-divider-usdt');
     if (!wrap) return;
     const amt = (Math.round(Number(amount) * 100) / 100).toFixed(2);
     $('usdt-amount').textContent  = `${amt} USDT`;
     $('usdt-address').textContent = USDT_ADDRESS;
-    wrap.hidden = false;
-    if (divider) divider.hidden = false;
   }
 
   /* ----- Submit the order ----- */
@@ -2504,6 +2553,7 @@ ${payloadBlock}`;
         setupVenmoButton(orderRef, total);
         setupZelle(orderRef, total);
         setupUsdt(orderRef, total);
+        resetPaySelection();
         showView('success');
         cart = [];
         appliedCode = null;
