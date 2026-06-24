@@ -14,3 +14,7 @@ $RECYCLE.BIN/
 
 # Logs
 *.log
+
+# vial image build scratch (working files, not for deploy)
+build_vials/
+_preview.html

@@ -310,6 +310,18 @@ html, body {
 .product-card:focus-within::after  { opacity: 1; }
 .product-card:hover .product-card__title { color: var(--color-ember-gold); }
 
+.product-card__media {
+  margin: 2px 0 14px;
+  height: 196px;
+  border-radius: 8px;
+  background: #000;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+}
+.product-card__media img {
+  height: 192px; width: auto; display: block;
+}
 .product-card__meta {
   margin-bottom: 12px;
   padding-bottom: 12px;
@@ -1674,6 +1686,10 @@ function renderCard(p) {
 
   return `
     <article class="product-card">
+      <div class="product-card__media">
+        <img src="img/vials/${escapeHtml(p.slug)}.jpg" alt="${escapeHtml(p.name)} research vial" loading="lazy"
+          onerror="this.closest('.product-card__media').style.display='none'">
+      </div>
       <header class="product-card__meta">
         <span class="product-card__tag">RUO &middot; Purity &ge;99.0%</span>
       </header>
