@@ -1350,7 +1350,7 @@ select.pc-size option { background: var(--bg-3); color: var(--text-1); }
         <span class="cart-subtotal__value" id="cart-subtotal-2">$0</span>
       </div>
       <div class="cart-subtotal cart-subtotal--disc" id="cart-discount-row" hidden>
-        <span class="cart-subtotal__label">Referral <span id="cart-discount-code"></span> (10% off)</span>
+        <span class="cart-subtotal__label">Referral <span id="cart-discount-code"></span> (<span id="cart-discount-pct">10</span>% off)</span>
         <span class="cart-subtotal__value" id="cart-discount-2">-$0</span>
       </div>
       <div class="cart-subtotal cart-subtotal--total" id="cart-total-row" hidden>
@@ -1897,10 +1897,18 @@ renderJumpMenu();
 
   // ----- Referral codes -----------------------------------------------------
   // Each approved referrer gets their OWN code (case-insensitive). A valid code
-  // takes 10% off the order. EDIT THIS LIST with the real codes from Kelley
-  // before go-live. Format:  'CODE': 'Referrer label (for your records)'.
+  // takes 10% off the order (20% during an active promo). EDIT THIS LIST with the
+  // real codes from Kelley. Format:  'CODE': 'Referrer label (for your records)'.
   // Note: anything here is visible in the page source, so codes aren't secret.
-  const DISCOUNT_RATE  = 0.10;
+  //
+  // FLOOD promo: every code is boosted to 20% off through the end of July 5, 2026
+  // Eastern. It auto-reverts to 10% after the cutoff — no second deploy needed.
+  // Cutoff is a fixed UTC instant (2026-07-05 midnight ET = EDT, UTC-4 = 07-06 04:00Z)
+  // so it's correct regardless of the visitor's own timezone.
+  const FLOOD_CUTOFF   = new Date('2026-07-06T04:00:00Z');
+  const FLOOD_ACTIVE   = new Date() < FLOOD_CUTOFF;
+  const DISCOUNT_RATE  = FLOOD_ACTIVE ? 0.20 : 0.10;
+  const DISCOUNT_PCT   = Math.round(DISCOUNT_RATE * 100); // whole-number % for UI copy
   const REFERRAL_CODES = {
     'JORDAN10': 'Jordan',
     'KELLEY10': 'Kelley',
@@ -2066,7 +2074,7 @@ renderJumpMenu();
       msg.textContent = ''; msg.className = 'cart-referral__msg';
     } else if (REFERRAL_CODES[raw]) {
       appliedCode = raw;
-      msg.textContent = 'Code applied — 10% off your order.';
+      msg.textContent = `Code applied — ${DISCOUNT_PCT}% off your order.`;
       msg.className = 'cart-referral__msg is-ok';
     } else {
       appliedCode = null;
@@ -2086,6 +2094,7 @@ renderJumpMenu();
     if (appliedCode && sub > 0) {
       $('cart-discount-2').textContent   = '-' + fmtD(discountAmt());
       $('cart-discount-code').textContent = appliedCode;
+      $('cart-discount-pct').textContent  = DISCOUNT_PCT;
       $('cart-total-2').textContent      = fmtD(grandTotal());
       discRow.hidden = false;
       totalRow.hidden = false;
@@ -2345,7 +2354,7 @@ renderJumpMenu();
     if (appliedCode && subtotal() > 0) {
       return rows +
         `<div class="ln"><span>Subtotal (free shipping)</span><span>${fmt(subtotal())}</span></div>` +
-        `<div class="ln"><span>Referral ${escapeHtml(appliedCode)} (10% off)</span><span>-${fmtD(discountAmt())}</span></div>` +
+        `<div class="ln"><span>Referral ${escapeHtml(appliedCode)} (${DISCOUNT_PCT}% off)</span><span>-${fmtD(discountAmt())}</span></div>` +
         `<div class="ln sub"><span>Order total</span><span>${fmtD(grandTotal())}</span></div>`;
     }
     return rows + `<div class="ln sub"><span>Order total (free shipping)</span><span>${fmt(subtotal())}</span></div>`;
@@ -2491,7 +2500,7 @@ renderJumpMenu();
       '\nEND INVOICE PAYLOAD';
 
     const totalsText = referralCode
-      ? `Subtotal (free shipping): ${fmt(subtotal())}\nReferral ${referralCode} (10% off): -${fmtD(discount)}\nOrder total: ${fmtD(total)}`
+      ? `Subtotal (free shipping): ${fmt(subtotal())}\nReferral ${referralCode} (${DISCOUNT_PCT}% off): -${fmtD(discount)}\nOrder total: ${fmtD(total)}`
       : `Order total (free shipping): ${fmt(subtotal())}`;
 
     const message =
