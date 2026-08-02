@@ -1089,6 +1089,20 @@ select.pc-size option { background: var(--bg-3); color: var(--text-1); }
   .product-card:hover,
   .product-card__cta:hover { transform: none; }
 }
+
+/* Mobile nav — wrap the link row so the Order pill never runs off-screen. */
+@media (max-width: 720px) {
+  .nav { flex-wrap: wrap; gap: 12px; padding: 14px 18px; }
+  .nav__logo img { height: 64px; width: 64px; }
+  .nav__links {
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 14px;
+    font-size: 11px;
+    letter-spacing: 0.10em;
+  }
+}
 </style>
 <!-- 18+ age gate — runs before the body paints. Self-contained, no backend. -->
 <script src="age-gate.js"></script>
@@ -1104,6 +1118,7 @@ select.pc-size option { background: var(--bg-3); color: var(--text-1); }
   </a>
   <div class="nav__links">
     <a href="catalog.html" class="is-active">Catalog</a>
+    <a href="calculator.html">Calculator</a>
     <a href="#contact">Contact</a>
     <button type="button" class="cart-toggle" id="cart-toggle" aria-haspopup="dialog" aria-controls="cart-drawer">
       Order <span class="cart-toggle__count" id="cart-count" data-empty="true">0</span>

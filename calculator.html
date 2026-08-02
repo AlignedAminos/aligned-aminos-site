@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Reconstitution Calculator &mdash; Aligned Aminos</title>
+<meta name="description" content="Research-use-only solution math: convert lyophilized mass and diluent volume into concentration, and concentration into aliquot volume." />
+<!-- Cloudflare Web Analytics — privacy-friendly, no cookie banner. -->
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js"
+        data-cf-beacon='{"token": "b39fa658d9264c73aea514108b6b6b6c"}'></script>
+<style>
+/* ===== Tokens — EMBER palette (mirrors index.html / catalog.html) ===== */
+:root {
+  --bg-base: #07080A;
+  --bg-1:    #0D0F12;
+  --bg-2:    #14171C;
+  --bg-3:    #1B1F26;
+
+  --text-1: #F2F4F8;
+  --text-2: #B5ADA0;
+  --text-3: #7A6F5E;
+  --text-inv: #07080A;
+
+  --border-subtle:  rgba(255,255,255,0.06);
+  --border-default: rgba(255,255,255,0.10);
+  --border-strong:  rgba(255,255,255,0.18);
+
+  --ember-deep:   #8B2010;
+  --ember:        #FF5A1F;
+  --ember-bright: #FF8C42;
+  --ember-gold:   #FFB020;
+  --ember-glow:    rgba(255,90,31,0.45);
+  --ember-glow-lg: rgba(255,90,31,0.30);
+  --ember-muted:   rgba(255,90,31,0.10);
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo, Consolas, monospace;
+
+  --grid-line: rgba(255,255,255,0.035);
+
+  --color-ember: var(--ember);
+  --color-ember-gold: var(--ember-gold);
+  --bg-elev-1: var(--bg-1);
+  --text-muted: var(--text-3);
+
+  --radius-lg: 12px;
+  --radius-sm: 6px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-base);
+  color: var(--text-1);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Animated grid background */
+.bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-color: var(--bg-base);
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 20%, #000 40%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 20%, #000 40%, transparent 100%);
+  animation: drift 32s linear infinite;
+}
+.bg::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 50% 0%, var(--ember-glow-lg), transparent 55%);
+  opacity: 0.6;
+  pointer-events: none;
+}
+@keyframes drift {
+  from { background-position: 0 0, 0 0; }
+  to   { background-position: 64px 64px, 64px 64px; }
+}
+
+/* ===== Header / Nav ===== */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 32px;
+  background: rgba(7, 8, 10, 0.72);
+  backdrop-filter: saturate(140%) blur(14px);
+  -webkit-backdrop-filter: saturate(140%) blur(14px);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.nav__logo { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; }
+.nav__logo img {
+  height: 112px;
+  width: 112px;
+  display: block;
+  object-fit: cover;
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 1px rgba(255, 90, 31, 0.35),
+    0 0 24px var(--ember-glow-lg),
+    0 4px 12px rgba(0, 0, 0, 0.6);
+  transition: box-shadow 280ms ease, transform 240ms ease;
+}
+.nav__logo:hover img {
+  box-shadow:
+    0 0 0 1px rgba(255, 90, 31, 0.55),
+    0 0 36px var(--ember-glow),
+    0 6px 16px rgba(0, 0, 0, 0.65);
+  transform: scale(1.03);
+}
+.nav__links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+.nav__links a { color: var(--text-2); text-decoration: none; transition: color 160ms ease; }
+.nav__links a:hover { color: var(--ember); }
+.nav__links a.is-active { color: var(--text-1); }
+
+.cart-toggle {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-1) !important;
+  background: var(--ember-muted);
+  border: 1px solid rgba(255,90,31,0.30);
+  border-radius: 9999px;
+  text-decoration: none;
+  transition: border-color 160ms ease, box-shadow 240ms ease;
+}
+.cart-toggle:hover { border-color: var(--ember); box-shadow: 0 0 16px var(--ember-glow-lg); }
+.cart-toggle__count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 18px; height: 18px; padding: 0 5px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0;
+  color: var(--text-inv);
+  background: var(--ember);
+  border-radius: 9999px;
+}
+.cart-toggle__count[data-empty="true"] { background: var(--bg-3); color: var(--text-3); }
+
+/* Layout */
+.wrap { max-width: 1000px; margin: 0 auto; padding: 64px 32px 96px; }
+.section + .section { margin-top: 64px; }
+
+.eyebrow {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ember);
+  margin-bottom: 16px;
+}
+
+h1 {
+  margin: 0 0 20px;
+  font-size: clamp(36px, 5.5vw, 60px);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  background: linear-gradient(180deg, #F2F4F8 0%, #8A7E6E 140%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+p.lede {
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--text-2);
+  max-width: 62ch;
+  margin: 0 0 24px;
+}
+
+/* RUO notice */
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 20px;
+  background: var(--ember-muted);
+  border: 1px solid rgba(255,90,31,0.25);
+  border-radius: var(--radius-sm);
+  max-width: 72ch;
+}
+.notice__dot {
+  flex: none;
+  width: 6px; height: 6px;
+  margin-top: 7px;
+  border-radius: 9999px;
+  background: var(--ember);
+  box-shadow: 0 0 8px var(--ember-glow);
+}
+.notice p {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.7;
+  letter-spacing: 0.04em;
+  color: var(--text-2);
+}
+.notice strong { color: var(--text-1); font-weight: 600; }
+
+/* ===== Calculator ===== */
+.calc {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin-top: 40px;
+}
+@media (min-width: 860px) {
+  .calc { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+}
+
+.panel {
+  position: relative;
+  isolation: isolate;
+  padding: 32px;
+  background: linear-gradient(180deg, var(--bg-1) 0%, var(--bg-base) 100%);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.panel::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0; top: 0; height: 2px;
+  background: var(--ember);
+  opacity: 0.6;
+}
+.panel__title {
+  margin: 0 0 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ember);
+}
+.panel__sub {
+  margin: 0 0 24px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-3);
+}
+
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+.field:last-of-type { margin-bottom: 0; }
+.field label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.field__optional {
+  text-transform: none;
+  letter-spacing: 0.02em;
+  color: var(--text-3);
+  font-weight: 400;
+}
+.input-row { display: flex; align-items: stretch; }
+.input-row input {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: 16px;
+  color: var(--text-1);
+  background: var(--bg-elev-1);
+  border: 1px solid var(--border-default);
+  border-right: none;
+  border-radius: 8px 0 0 8px;
+  padding: 14px 16px;
+  transition: border-color 160ms ease, box-shadow 200ms ease;
+}
+.input-row input:focus {
+  outline: none;
+  border-color: var(--color-ember);
+  box-shadow: 0 0 0 3px var(--ember-muted);
+  position: relative;
+  z-index: 1;
+}
+.input-row input::placeholder { color: var(--text-3); }
+.input-row input::-webkit-outer-spin-button,
+.input-row input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.input-row input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+.input-row__unit {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 16px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  background: var(--bg-2);
+  border: 1px solid var(--border-default);
+  border-radius: 0 8px 8px 0;
+}
+
+.field__hint {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--text-3);
+  letter-spacing: 0.02em;
+}
+.field__hint[data-state="error"] { color: var(--ember-gold); }
+
+.calc__actions { display: flex; gap: 12px; margin-top: 28px; }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 160ms ease, box-shadow 240ms ease, border-color 160ms ease, color 160ms ease;
+}
+.btn--secondary { background: transparent; border-color: var(--border-strong); color: var(--text-1); }
+.btn--secondary:hover { border-color: var(--ember); color: var(--ember); }
+
+/* Results */
+.result { padding-bottom: 20px; margin-bottom: 20px; border-bottom: 1px solid var(--border-subtle); }
+.result:last-child { padding-bottom: 0; margin-bottom: 0; border-bottom: none; }
+.result__label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.result__value {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.result__number {
+  font-family: var(--font-mono);
+  font-size: 34px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+  color: var(--text-1);
+  word-break: break-word;
+}
+.result__number[data-empty="true"] { color: var(--text-3); }
+.result__unit { font-family: var(--font-mono); font-size: 15px; color: var(--ember); }
+.result__caption { margin-top: 6px; font-size: 12px; line-height: 1.55; color: var(--text-2); }
+
+.result--highlight .result__number { color: var(--ember-gold); }
+
+/* Reference block */
+.reference {
+  margin-top: 24px;
+  padding: 24px 32px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--bg-1);
+}
+.reference h3 {
+  margin: 0 0 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+.reference dl { margin: 0; display: grid; gap: 10px; }
+@media (min-width: 700px) { .reference dl { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px 32px; } }
+.reference dt {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-1);
+  letter-spacing: 0.02em;
+}
+.reference dd {
+  margin: 2px 0 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-3);
+}
+
+/* Footer note */
+.footnote {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-default);
+}
+.footnote p {
+  margin: 0 0 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.75;
+  letter-spacing: 0.04em;
+  color: var(--text-3);
+}
+.footnote p:last-child { margin-bottom: 0; }
+.footnote a { color: var(--color-ember); text-decoration: none; }
+.footnote a:hover { color: var(--color-ember-gold); }
+
+/* Mobile nav — wrap the link row so the Order pill never runs off-screen. */
+@media (max-width: 720px) {
+  .nav { flex-wrap: wrap; gap: 12px; padding: 14px 18px; }
+  .nav__logo img { height: 64px; width: 64px; }
+  .nav__links {
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 14px;
+    font-size: 11px;
+    letter-spacing: 0.10em;
+  }
+}
+
+@media (max-width: 620px) {
+  .wrap { padding: 40px 18px 64px; }
+  .panel { padding: 24px 20px; }
+  .reference { padding: 20px; }
+}
+</style>
+<!-- 18+ age gate — runs before the body paints. Self-contained, no backend. -->
+<script src="age-gate.js"></script>
+</head>
+<body>
+
+<div class="bg" aria-hidden="true"></div>
+
+<!-- ===== NAV ===== -->
+<nav class="nav">
+  <a class="nav__logo" href="index.html" aria-label="Aligned Aminos home">
+    <img src="logo.png?v=2" alt="Aligned Aminos" />
+  </a>
+  <div class="nav__links">
+    <a href="catalog.html">Catalog</a>
+    <a href="calculator.html" class="is-active" aria-current="page">Calculator</a>
+    <a href="index.html#contact">Contact</a>
+    <a class="cart-toggle" href="catalog.html#cart" aria-label="View your order">
+      Order <span class="cart-toggle__count" id="cart-count" data-empty="true">0</span>
+    </a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <!-- ===== Header ===== -->
+  <section class="section">
+    <span class="eyebrow">Reconstitution</span>
+    <h1>Solution math,<br />done once.</h1>
+    <p class="lede">
+      Enter the labelled mass in the vial and the volume of diluent added. The calculator
+      returns the resulting concentration, and the volume of that solution containing any
+      given mass of peptide. Nothing is stored or transmitted &mdash; the arithmetic runs
+      in your browser.
+    </p>
+
+    <div class="notice">
+      <span class="notice__dot" aria-hidden="true"></span>
+      <p>
+        <strong>Research use only.</strong> This tool performs unit conversion on solutions.
+        It is not dosing guidance, it does not suggest quantities, and none of the compounds
+        listed on this site are approved for human or veterinary use.
+      </p>
+    </div>
+  </section>
+
+  <!-- ===== Calculator ===== -->
+  <section class="section">
+    <form class="calc" id="calc-form" novalidate>
+
+      <div class="panel">
+        <h2 class="panel__title">Inputs</h2>
+        <p class="panel__sub">Values update as you type.</p>
+
+        <div class="field">
+          <label for="calc-mass">Peptide mass in vial</label>
+          <div class="input-row">
+            <input id="calc-mass" name="mass" type="number" inputmode="decimal"
+                   min="0" step="any" placeholder="10" autocomplete="off" />
+            <span class="input-row__unit">mg</span>
+          </div>
+          <span class="field__hint" id="hint-mass">As printed on the vial label.</span>
+        </div>
+
+        <div class="field">
+          <label for="calc-volume">Diluent volume added</label>
+          <div class="input-row">
+            <input id="calc-volume" name="volume" type="number" inputmode="decimal"
+                   min="0" step="any" placeholder="2" autocomplete="off" />
+            <span class="input-row__unit">mL</span>
+          </div>
+          <span class="field__hint" id="hint-volume">Bacteriostatic or sterile water, as added.</span>
+        </div>
+
+        <div class="field">
+          <label for="calc-target">
+            Target mass per aliquot
+            <span class="field__optional">&mdash; optional</span>
+          </label>
+          <div class="input-row">
+            <input id="calc-target" name="target" type="number" inputmode="decimal"
+                   min="0" step="any" placeholder="250" autocomplete="off" />
+            <span class="input-row__unit">mcg</span>
+          </div>
+          <span class="field__hint" id="hint-target">Mass you want to draw from the reconstituted vial.</span>
+        </div>
+
+        <div class="calc__actions">
+          <button type="button" class="btn btn--secondary" id="calc-reset">Clear</button>
+        </div>
+      </div>
+
+      <div class="panel" aria-live="polite">
+        <h2 class="panel__title">Results</h2>
+        <p class="panel__sub">Rounded for display; full precision used internally.</p>
+
+        <div class="result">
+          <span class="result__label">Concentration</span>
+          <span class="result__value">
+            <span class="result__number" id="out-mgml" data-empty="true">&mdash;</span>
+            <span class="result__unit">mg / mL</span>
+          </span>
+          <p class="result__caption" id="out-mcgml-caption">Equivalent in mcg/mL appears here.</p>
+        </div>
+
+        <div class="result result--highlight">
+          <span class="result__label">Volume containing target mass</span>
+          <span class="result__value">
+            <span class="result__number" id="out-volume" data-empty="true">&mdash;</span>
+            <span class="result__unit">mL</span>
+          </span>
+          <p class="result__caption" id="out-volume-caption">Enter a target mass to calculate.</p>
+        </div>
+
+        <div class="result">
+          <span class="result__label">Aliquots of that size per vial</span>
+          <span class="result__value">
+            <span class="result__number" id="out-aliquots" data-empty="true">&mdash;</span>
+            <span class="result__unit">whole</span>
+          </span>
+          <p class="result__caption" id="out-aliquots-caption">Whole aliquots before the vial is exhausted.</p>
+        </div>
+      </div>
+
+    </form>
+
+    <div class="reference">
+      <h3>The arithmetic</h3>
+      <dl>
+        <div>
+          <dt>Concentration = mass &divide; volume</dt>
+          <dd>10 mg into 2 mL &rarr; 5 mg/mL, i.e. 5000 mcg/mL.</dd>
+        </div>
+        <div>
+          <dt>Volume = target mass &divide; concentration</dt>
+          <dd>250 mcg at 5000 mcg/mL &rarr; 0.05 mL.</dd>
+        </div>
+        <div>
+          <dt>1 mg = 1000 mcg</dt>
+          <dd>Vials are labelled in mg; aliquots are usually discussed in mcg.</dd>
+        </div>
+        <div>
+          <dt>Diluent volume is what you added</dt>
+          <dd>Lyophilized powder contributes negligible volume at these masses.</dd>
+        </div>
+      </dl>
+    </div>
+
+    <div class="footnote">
+      <p>
+        Research use only. Not for human or veterinary use, and not for diagnostic or
+        therapeutic application. This page performs unit conversion and nothing else.
+      </p>
+      <p>
+        Questions about a specific lot or data sheet?
+        <a href="index.html#contact">Get in touch</a> &middot;
+        <a href="mailto:Alignedaminos@proton.me">Alignedaminos@proton.me</a>
+      </p>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* =========================================================
+   Reconstitution calculator — pure client-side unit conversion.
+   mass (mg) + diluent (mL)  ->  concentration (mg/mL, mcg/mL)
+   target (mcg) / concentration -> aliquot volume (mL)
+   No network calls, no storage, no dosing logic.
+   ========================================================= */
+(() => {
+  const form    = document.getElementById('calc-form');
+  if (!form) return;
+
+  const massEl   = document.getElementById('calc-mass');
+  const volEl    = document.getElementById('calc-volume');
+  const targetEl = document.getElementById('calc-target');
+  const resetBtn = document.getElementById('calc-reset');
+
+  const outMgMl      = document.getElementById('out-mgml');
+  const outMcgCap    = document.getElementById('out-mcgml-caption');
+  const outVolume    = document.getElementById('out-volume');
+  const outVolCap    = document.getElementById('out-volume-caption');
+  const outAliquots  = document.getElementById('out-aliquots');
+  const outAliqCap   = document.getElementById('out-aliquots-caption');
+
+  const hintMass   = document.getElementById('hint-mass');
+  const hintVolume = document.getElementById('hint-volume');
+  const hintTarget = document.getElementById('hint-target');
+
+  const DEFAULT_HINTS = {
+    mass:   'As printed on the vial label.',
+    volume: 'Bacteriostatic or sterile water, as added.',
+    target: 'Mass you want to draw from the reconstituted vial.',
+  };
+
+  const EM_DASH = '—';
+
+  /* Parse a field into a number. Returns null when blank or not a finite number. */
+  const parse = (el) => {
+    const raw = (el.value || '').trim();
+    if (raw === '') return null;
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : NaN;
+  };
+
+  /* Display formatting: keep small numbers readable without dumping float noise. */
+  const fmt = (n) => {
+    if (!Number.isFinite(n)) return EM_DASH;
+    const abs = Math.abs(n);
+    let s;
+    if (abs === 0)          s = '0';
+    else if (abs >= 1000)   s = n.toFixed(0);
+    else if (abs >= 100)    s = n.toFixed(1);
+    else if (abs >= 1)      s = n.toFixed(3);
+    else if (abs >= 0.001)  s = n.toFixed(4);
+    else                    s = n.toPrecision(3);
+    /* trim trailing zeros but keep at least one digit after any decimal point */
+    if (s.indexOf('.') !== -1 && s.indexOf('e') === -1) {
+      s = s.replace(/0+$/, '').replace(/\.$/, '');
+    }
+    return s;
+  };
+
+  const setOut = (el, value) => {
+    const empty = value === EM_DASH;
+    el.textContent = value;
+    el.dataset.empty = empty ? 'true' : 'false';
+  };
+
+  const setHint = (el, text, isError) => {
+    el.textContent = text;
+    if (isError) el.dataset.state = 'error';
+    else delete el.dataset.state;
+  };
+
+  const clearOutputs = () => {
+    setOut(outMgMl, EM_DASH);
+    setOut(outVolume, EM_DASH);
+    setOut(outAliquots, EM_DASH);
+    outMcgCap.textContent = 'Equivalent in mcg/mL appears here.';
+    outVolCap.textContent = 'Enter a target mass to calculate.';
+    outAliqCap.textContent = 'Whole aliquots before the vial is exhausted.';
+  };
+
+  const compute = () => {
+    const mass   = parse(massEl);
+    const volume = parse(volEl);
+    const target = parse(targetEl);
+
+    /* ---- validate mass ---- */
+    let massOk = false;
+    if (mass === null) {
+      setHint(hintMass, DEFAULT_HINTS.mass, false);
+    } else if (Number.isNaN(mass)) {
+      setHint(hintMass, 'Enter a number.', true);
+    } else if (mass <= 0) {
+      setHint(hintMass, 'Mass must be greater than zero.', true);
+    } else {
+      setHint(hintMass, DEFAULT_HINTS.mass, false);
+      massOk = true;
+    }
+
+    /* ---- validate volume ---- */
+    let volOk = false;
+    if (volume === null) {
+      setHint(hintVolume, DEFAULT_HINTS.volume, false);
+    } else if (Number.isNaN(volume)) {
+      setHint(hintVolume, 'Enter a number.', true);
+    } else if (volume <= 0) {
+      setHint(hintVolume, 'Volume must be greater than zero.', true);
+    } else {
+      setHint(hintVolume, DEFAULT_HINTS.volume, false);
+      volOk = true;
+    }
+
+    /* ---- validate target ---- */
+    let targetOk = false;
+    if (target === null) {
+      setHint(hintTarget, DEFAULT_HINTS.target, false);
+    } else if (Number.isNaN(target)) {
+      setHint(hintTarget, 'Enter a number.', true);
+    } else if (target <= 0) {
+      setHint(hintTarget, 'Target mass must be greater than zero.', true);
+    } else {
+      setHint(hintTarget, DEFAULT_HINTS.target, false);
+      targetOk = true;
+    }
+
+    if (!massOk || !volOk) {
+      clearOutputs();
+      return;
+    }
+
+    /* ---- concentration ---- */
+    const mgPerMl  = mass / volume;
+    const mcgPerMl = mgPerMl * 1000;
+
+    setOut(outMgMl, fmt(mgPerMl));
+    outMcgCap.textContent = fmt(mcgPerMl) + ' mcg/mL · ' +
+                            fmt(mass * 1000) + ' mcg total in ' + fmt(volume) + ' mL.';
+
+    /* ---- volume containing the target mass ---- */
+    if (!targetOk) {
+      setOut(outVolume, EM_DASH);
+      setOut(outAliquots, EM_DASH);
+      outVolCap.textContent = 'Enter a target mass to calculate.';
+      outAliqCap.textContent = 'Whole aliquots before the vial is exhausted.';
+      return;
+    }
+
+    const totalMcg = mass * 1000;
+    const volForTarget = target / mcgPerMl;   /* mL */
+
+    setOut(outVolume, fmt(volForTarget));
+    outVolCap.textContent = fmt(volForTarget * 1000) + ' µL · ' +
+                            fmt(target) + ' mcg at ' + fmt(mcgPerMl) + ' mcg/mL.';
+
+    if (target > totalMcg) {
+      setOut(outAliquots, '0');
+      outAliqCap.textContent = 'Target mass exceeds the ' + fmt(totalMcg) +
+                               ' mcg in this vial.';
+    } else {
+      const whole = Math.floor(totalMcg / target);
+      setOut(outAliquots, String(whole));
+      const leftoverMcg = totalMcg - (whole * target);
+      outAliqCap.textContent = leftoverMcg > 0
+        ? fmt(leftoverMcg) + ' mcg (' + fmt(leftoverMcg / mcgPerMl) + ' mL) remains after ' + whole + '.'
+        : 'Divides evenly with nothing left over.';
+    }
+  };
+
+  [massEl, volEl, targetEl].forEach((el) => {
+    el.addEventListener('input', compute);
+    el.addEventListener('change', compute);
+  });
+
+  resetBtn.addEventListener('click', () => {
+    form.reset();
+    setHint(hintMass, DEFAULT_HINTS.mass, false);
+    setHint(hintVolume, DEFAULT_HINTS.volume, false);
+    setHint(hintTarget, DEFAULT_HINTS.target, false);
+    clearOutputs();
+    massEl.focus();
+  });
+
+  /* Enter should not attempt a submit — there is no backend. */
+  form.addEventListener('submit', (e) => e.preventDefault());
+
+  clearOutputs();
+})();
+</script>
+
+<script>
+/* Sync the nav order badge from the saved cart (set on the catalog page). */
+(() => {
+  const el = document.getElementById('cart-count');
+  if (!el) return;
+  let n = 0;
+  try {
+    const raw = JSON.parse(localStorage.getItem('aa_order_v1') || '[]');
+    if (Array.isArray(raw)) n = raw.reduce((s, l) => s + (parseInt(l && l.qty, 10) || 0), 0);
+  } catch (e) {}
+  el.textContent = n;
+  el.dataset.empty = n === 0 ? 'true' : 'false';
+})();
+</script>
+
+</body>
+</html>
