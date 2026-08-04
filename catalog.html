@@ -1545,6 +1545,33 @@ select.pc-size option { background: var(--bg-3); color: var(--text-1); }
    • BAC Water: kept as the $15 / 11-vial loss leader (V2 ratchet not applied).
    • Oxytocin Acetate: DISCONTINUED (dropped from V2 supplier list).
      (Orphaned datasheets/oxytocin-acetate.html left in place, no longer linked.)
+
+   ── UPDATE 2026-08-04, from "Peptide Price 8.1" (Jordan) ─────────────────
+   Pricing rule changed to: price = MAX(prior live price, wholesale x4.4
+   rounded UP to $5). x4.4 = the x4 tier plus 10%. Ratchet still applies —
+   prices only ever go up. 107 sizes repriced, 0 reduced.
+
+   REMOVED (SKU no longer on the 8.1 supplier list):
+   • Reta + Cagri (RC10), LL-37 (375), HMG (G75), GHRP-2 (G25/G210),
+     HGH Frag 176-191 (FR2/FR5/FR10), Cerebrolysin (C60)
+   • Retatrutide 5 mg and 15 mg — those two sizes are not on 8.1; the
+     product stays at 10-60 mg.
+   Orphaned data sheets left in datasheets/, no longer linked.
+
+   ADDED (approved individually by Jordan):
+   • VIP 5/10 mg, PNC-27 5/10 mg, Teriparatide 10 mg, TB-500 FRAG 10 mg,
+     P21 10 mg, P21 adamantane 10 mg, Testagen 20 mg,
+     BAC Water 3 ml ($20)
+   New SKUs carry `noSheet: true` — the Data sheet button is suppressed
+   until a PDF exists in datasheets/. Write the PDF, drop the flag.
+
+   DECISIONS:
+   • BAC Water held off the ratchet again: 10 ml $25, 3 ml $20.
+   • Vion (V120) held back — supplier spec unknown, cannot write a card.
+   • Declined this round: Tirzepatide 5 mg, ACE-031, Humanin, Matrixyl,
+     PTD-DBM, Dermorphin, and the 11 Khavinson bioregulators.
+   • AA Water (AA水): declined — supplier-side add-on tied to OT2, not a
+     retail SKU.
    ═════════════════════════════════════════════════════════════════════════ */
 
 const CATEGORIES = [
@@ -1562,154 +1589,152 @@ const PRODUCTS = [
 
   // ─── Metabolic & GLP-1 ───────────────────────────────────────────────
   { cat: 'metabolic', name: 'Tirzepatide',     slug: 'tirzepatide',              sub: 'GIP / GLP-1 dual agonist',          variants: [
-    { mass: '10 mg', price: 170 }, { mass: '15 mg', price: 205 },
-    { mass: '20 mg', price: 275 }, { mass: '30 mg', price: 405 }, { mass: '40 mg', price: 470 },
-    { mass: '50 mg', price: 640 }, { mass: '60 mg', price: 740 }, { mass: '100 mg', price: 1245 },
-    { mass: '120 mg', vials: 11, price: 1555 } ] },
+    { mass: '10 mg', price: 225 }, { mass: '15 mg', price: 265 },
+    { mass: '20 mg', price: 355 }, { mass: '30 mg', price: 530 }, { mass: '40 mg', price: 620 },
+    { mass: '50 mg', price: 840 }, { mass: '60 mg', price: 970 }, { mass: '100 mg', price: 1630 },
+    { mass: '120 mg', vials: 11, price: 2025 } ] },
   { cat: 'metabolic', name: 'Retatrutide',     slug: 'retatrutide',              sub: 'GLP-1 / GIP / Glucagon triple agonist', variants: [
-    { mass: '5 mg', price: 235 }, { mass: '10 mg', price: 275 }, { mass: '15 mg', price: 440, oos: true },
-    { mass: '20 mg', price: 470 }, { mass: '30 mg', price: 710 }, { mass: '40 mg', price: 945 },
-    { mass: '50 mg', price: 1145 }, { mass: '60 mg', vials: 11, price: 1315 } ] },
+    { mass: '10 mg', price: 355 },
+    { mass: '20 mg', price: 620 }, { mass: '30 mg', price: 925 }, { mass: '40 mg', price: 1235 },
+    { mass: '50 mg', price: 1500 }, { mass: '60 mg', vials: 11, price: 1720 } ] },
   { cat: 'metabolic', name: 'MOTS-c',          slug: 'mots-c',                   sub: 'Mitochondrial-derived peptide',     variants: [
-    { mass: '10 mg', price: 255 }, { mass: '40 mg', price: 1010 } ] },
+    { mass: '10 mg', price: 330 }, { mass: '40 mg', price: 1320 } ] },
   { cat: 'metabolic', name: 'AOD-9604',        slug: 'aod-9604',                 sub: 'GH fragment 176-191',               variants: [
-    { mass: '5 mg', price: 440 }, { mass: '10 mg', price: 880 } ] },
+    { mass: '5 mg', price: 575 }, { mass: '10 mg', price: 1145 } ] },
   { cat: 'metabolic', name: '5-Amino-1MQ',     slug: '5-amino-1mq',              sub: 'Selective NNMT inhibitor',          variants: [
-    { mass: '5 mg', price: 135 }, { mass: '10 mg', price: 170 }, { mass: '50 mg', price: 460 } ] },
+    { mass: '5 mg', price: 180 }, { mass: '10 mg', price: 225 }, { mass: '50 mg', price: 460 } ] },
   { cat: 'metabolic', name: 'Semaglutide',     slug: 'semaglutide',              sub: 'GLP-1 receptor agonist',            variants: [
-    { mass: '10 mg', price: 155 }, { mass: '20 mg', price: 255 }, { mass: '30 mg', price: 340 } ] },
+    { mass: '10 mg', price: 200 }, { mass: '20 mg', price: 330 }, { mass: '30 mg', price: 445 } ] },
   { cat: 'metabolic', name: 'Liraglutide',     slug: 'liraglutide',              sub: 'GLP-1 receptor agonist',            variants: [
-    { mass: '5 mg', price: 325 }, { mass: '10 mg', price: 545 }, { mass: '30 mg', price: 1350 } ] },
+    { mass: '5 mg', price: 420 }, { mass: '10 mg', price: 705 }, { mass: '30 mg', price: 1765 } ] },
   { cat: 'metabolic', name: 'Cagrilintide',    slug: 'cagrilintide',             sub: 'Long-acting amylin analog',         variants: [
-    { mass: '5 mg', price: 340 }, { mass: '10 mg', price: 610 }, { mass: '20 mg', price: 1180 } ] },
+    { mass: '5 mg', price: 445 }, { mass: '10 mg', price: 795 }, { mass: '20 mg', price: 1545 } ] },
   { cat: 'metabolic', name: 'CagriSema',       slug: 'cagrisema',                sub: 'Cagrilintide + semaglutide blend',  variants: [
-    { mass: '10 mg', price: 470 } ] },
+    { mass: '10 mg', price: 620 } ] },
   { cat: 'metabolic', name: 'Mazdutide',       slug: 'mazdutide',                sub: 'GLP-1 / glucagon dual agonist',     variants: [
-    { mass: '5 mg', price: 340 }, { mass: '10 mg', price: 640 } ] },
+    { mass: '5 mg', price: 445 }, { mass: '10 mg', price: 840 } ] },
   { cat: 'metabolic', name: 'Survodutide',     slug: 'survodutide',              sub: 'GLP-1 / glucagon dual agonist',     variants: [
-    { mass: '10 mg', price: 1145 } ] },
-  { cat: 'metabolic', name: 'Reta + Cagri',    slug: 'retatrutide-cagrilintide-blend', sub: 'Retatrutide + cagrilintide blend', variants: [
-    { mass: '10 mg', price: 505 } ] },
-
-  // ─── Recovery & Repair ───────────────────────────────────────────────
+    { mass: '10 mg', price: 1500 } ] },
   { cat: 'recovery',  name: 'BPC-157',         slug: 'bpc-157',                  sub: 'Body Protection Compound',          variants: [
-    { mass: '5 mg', price: 135 }, { mass: '10 mg', price: 275 }, { mass: '20 mg', price: 405 } ] },
+    { mass: '5 mg', price: 180 }, { mass: '10 mg', price: 275 }, { mass: '20 mg', price: 530 } ] },
   { cat: 'recovery',  name: 'TB-500',          slug: 'tb-500',                   sub: 'Thymosin Beta-4 (full-length)',     variants: [
-    { mass: '5 mg', price: 340 }, { mass: '10 mg', price: 640 }, { mass: '20 mg', price: 1245 } ] },
+    { mass: '5 mg', price: 445 }, { mass: '10 mg', price: 840 }, { mass: '20 mg', price: 1630 } ] },
   { cat: 'recovery',  name: 'KPV',             slug: 'kpv',                      sub: 'Lysine-Proline-Valine tripeptide',  variants: [
-    { mass: '5 mg', price: 170 }, { mass: '10 mg', price: 245 } ] },
+    { mass: '5 mg', price: 225 }, { mass: '10 mg', price: 310 } ] },
   { cat: 'recovery',  name: 'BPC-157 + TB-500',slug: 'bpc-157-tb-500-blend',     sub: 'Recovery stack blend',              variants: [
-    { mass: '10 mg', price: 375 }, { mass: '20 mg', price: 740 } ] },
+    { mass: '10 mg', price: 485 }, { mass: '20 mg', price: 970 } ] },
+  { cat: 'recovery',  name: 'TB-500 FRAG',    slug: 'tb-500-frag',              sub: 'Thymosin Beta-4 active fragment',   noSheet: true, variants: [
+    { mass: '10 mg', price: 420 } ] },
   { cat: 'recovery',  name: 'GLOW',            slug: 'glow',                     sub: 'BPC-157 + GHK-Cu + TB-500',         variants: [
-    { mass: '70 mg', price: 780 } ] },
+    { mass: '70 mg', price: 1015 } ] },
   { cat: 'recovery',  name: 'KLOW',            slug: 'klow',                     sub: 'GLOW + KPV',                        variants: [
-    { mass: '80 mg', price: 880 } ] },
-  { cat: 'recovery',  name: 'LL-37',           slug: 'll-37',                    sub: 'Cathelicidin antimicrobial peptide',variants: [
-    { mass: '5 mg', price: 405 } ] },
-
-  // ─── Growth & GH Axis ────────────────────────────────────────────────
+    { mass: '80 mg', price: 1100 } ] },
   { cat: 'gh-axis',   name: 'IGF-1 LR3',       slug: 'igf-1-lr3',                sub: 'Long arginine-3 IGF-1 analog',      variants: [
-    { mass: '0.1 mg', price: 170 }, { mass: '1 mg', price: 845 } ] },
+    { mass: '0.1 mg', price: 225 }, { mass: '1 mg', price: 1100 } ] },
   { cat: 'gh-axis',   name: 'Ipamorelin',      slug: 'ipamorelin',               sub: 'Selective GH secretagogue',         variants: [
-    { mass: '5 mg', price: 170 }, { mass: '10 mg', price: 360 } ] },
+    { mass: '5 mg', price: 225 }, { mass: '10 mg', price: 360 } ] },
   { cat: 'gh-axis',   name: 'CJC-1295 + IPA',  slug: 'cjc-1295-ipamorelin-blend',sub: 'GHRH analog + ghrelin mimetic',     variants: [
-    { mass: '10 mg', price: 405 }, { mass: '20 mg', price: 780 } ] },
+    { mass: '10 mg', price: 510 }, { mass: '20 mg', price: 1015 } ] },
   { cat: 'gh-axis',   name: 'Tesamorelin',     slug: 'tesamorelin',              sub: 'GHRH analog',                       variants: [
-    { mass: '5 mg', price: 440 }, { mass: '10 mg', price: 810 }, { mass: '20 mg', price: 1555 } ] },
+    { mass: '5 mg', price: 575 }, { mass: '10 mg', price: 1060 }, { mass: '20 mg', price: 2025 } ] },
   { cat: 'gh-axis',   name: 'Sermorelin',      slug: 'sermorelin',               sub: 'GHRH (1-29) analog',                variants: [
-    { mass: '5 mg', price: 325 }, { mass: '10 mg', price: 610 } ] },
+    { mass: '5 mg', price: 420 }, { mass: '10 mg', price: 795 } ] },
   { cat: 'gh-axis',   name: 'HCG',             slug: 'hcg',                      sub: 'Human Chorionic Gonadotropin',      variants: [
-    { mass: '5,000 IU', price: 355 }, { mass: '10,000 IU', price: 710 } ] },
-  { cat: 'gh-axis',   name: 'HMG',             slug: 'hmg',                      sub: 'Human Menopausal Gonadotropin',     variants: [
-    { mass: '75 IU', price: 275 } ] },
+    { mass: '5,000 IU', price: 465 }, { mass: '10,000 IU', price: 925 } ] },
   { cat: 'gh-axis',   name: 'CJC-1295 (no DAC)', slug: 'cjc-1295-no-dac',        sub: 'Modified GRF (1-29)',               variants: [
-    { mass: '5 mg', price: 325 }, { mass: '10 mg', vials: 11, price: 575 } ] },
+    { mass: '5 mg', price: 420 }, { mass: '10 mg', vials: 11, price: 750 } ] },
   { cat: 'gh-axis',   name: 'CJC-1295 (DAC)',  slug: 'cjc-1295-dac',             sub: 'GHRH analog with DAC',              variants: [
-    { mass: '5 mg', price: 780 }, { mass: '10 mg', vials: 11, price: 1415 } ] },
+    { mass: '5 mg', price: 1015 }, { mass: '10 mg', vials: 11, price: 1850 } ] },
   { cat: 'gh-axis',   name: 'Tesamorelin + IPA', slug: 'tesamorelin-ipamorelin-blend', sub: 'GHRH analog + ghrelin mimetic', variants: [
-    { mass: '18 mg', price: 1050 } ] },
-  { cat: 'gh-axis',   name: 'GHRP-2',          slug: 'ghrp-2',                   sub: 'GH-releasing peptide-2',            variants: [
-    { mass: '5 mg', price: 120 }, { mass: '10 mg', price: 235 } ] },
+    { mass: '18 mg', price: 1365 } ] },
   { cat: 'gh-axis',   name: 'GHRP-6',          slug: 'ghrp-6',                   sub: 'GH-releasing peptide-6',            variants: [
-    { mass: '5 mg', price: 120 }, { mass: '10 mg', price: 235 } ] },
+    { mass: '5 mg', price: 155 }, { mass: '10 mg', price: 310 } ] },
   { cat: 'gh-axis',   name: 'Hexarelin',       slug: 'hexarelin',                sub: 'GH secretagogue (GHRP class)',      variants: [
-    { mass: '2 mg', price: 205 }, { mass: '5 mg', price: 375 } ] },
-  { cat: 'gh-axis',   name: 'HGH Frag 176-191',slug: 'hgh-fragment-176-191',     sub: 'GH fragment 176-191',               variants: [
-    { mass: '2 mg', price: 235 }, { mass: '5 mg', price: 440 }, { mass: '10 mg', price: 845 } ] },
+    { mass: '2 mg', price: 265 }, { mass: '5 mg', price: 485 } ] },
   { cat: 'gh-axis',   name: 'MGF',             slug: 'mgf',                      sub: 'Mechano growth factor (IGF-1Ec)',   variants: [
-    { mass: '2 mg', price: 155 } ] },
+    { mass: '2 mg', price: 200 } ] },
   { cat: 'gh-axis',   name: 'PEG-MGF',         slug: 'peg-mgf',                  sub: 'PEGylated mechano growth factor',   variants: [
-    { mass: '2 mg', price: 405 } ] },
+    { mass: '2 mg', price: 530 } ] },
   { cat: 'gh-axis',   name: 'Gonadorelin',     slug: 'gonadorelin',              sub: 'GnRH decapeptide',                  variants: [
-    { mass: '2 mg', price: 135 } ] },
+    { mass: '2 mg', price: 180 } ] },
 
   // ─── Longevity & Anti-Aging ──────────────────────────────────────────
   { cat: 'longevity', name: 'GHK-Cu',          slug: 'ghk-cu',                   sub: 'Copper tripeptide-1',               variants: [
-    { mass: '50 mg', price: 120 }, { mass: '100 mg', price: 185 } ] },
+    { mass: '50 mg', price: 155 }, { mass: '100 mg', price: 225 } ] },
   { cat: 'longevity', name: 'SNAP-8',          slug: 'snap-8',                   sub: 'Topical octapeptide',               variants: [
-    { mass: '10 mg', price: 170 } ] },
+    { mass: '10 mg', price: 200 } ] },
   { cat: 'longevity', name: 'Epithalon',       slug: 'epithalon',                sub: 'Telomerase-active tetrapeptide',    variants: [
-    { mass: '10 mg', price: 185 }, { mass: '50 mg', price: 690 } ] },
+    { mass: '10 mg', price: 245 }, { mass: '50 mg', price: 905 } ] },
   { cat: 'longevity', name: 'Pinealon',        slug: 'pinealon',                 sub: 'Pineal tripeptide bioregulator',    variants: [
-    { mass: '5 mg', price: 170 }, { mass: '10 mg', price: 275 }, { mass: '20 mg', price: 470 } ] },
+    { mass: '5 mg', price: 225 }, { mass: '10 mg', price: 355 }, { mass: '20 mg', price: 620 } ] },
   { cat: 'longevity', name: 'SS-31',           slug: 'ss-31',                    sub: 'Elamipretide, mitochondrial-targeted', variants: [
-    { mass: '10 mg', price: 385 }, { mass: '50 mg', price: 1350 } ] },
+    { mass: '10 mg', price: 385 }, { mass: '50 mg', price: 1765 } ] },
   { cat: 'longevity', name: 'GHK basic',       slug: 'ghk-basic',                sub: 'Glycyl-histidyl-lysine tripeptide', variants: [
-    { mass: '50 mg', price: 135 } ] },
+    { mass: '50 mg', price: 180 } ] },
   { cat: 'longevity', name: 'AHK-Cu',          slug: 'ahk-cu',                   sub: 'Copper tripeptide (AHK-Cu)',        variants: [
-    { mass: '100 mg', price: 255 } ] },
+    { mass: '100 mg', price: 330 } ] },
   { cat: 'longevity', name: 'NAD+',            slug: 'nad-plus',                 sub: 'Nicotinamide adenine dinucleotide', variants: [
-    { mass: '500 mg', price: 275 }, { mass: '1000 mg', price: 405 } ] },
+    { mass: '500 mg', price: 355 }, { mass: '1000 mg', price: 530 } ] },
+  { cat: 'longevity', name: 'Testagen',        slug: 'testagen',                 sub: 'Peptide bioregulator',              noSheet: true, variants: [
+    { mass: '20 mg', price: 575 } ] },
   { cat: 'longevity', name: 'Thymalin',        slug: 'thymalin',                 sub: 'Thymic peptide preparation',        variants: [
-    { mass: '10 mg', price: 290 } ] },
+    { mass: '10 mg', price: 375 } ] },
   { cat: 'longevity', name: 'N-Acetyl Epitalon Amidate', slug: 'n-acetyl-epitalon-amidate', sub: 'Modified epitalon tetrapeptide', variants: [
-    { mass: '5 mg', price: 235 } ] },
+    { mass: '5 mg', price: 310 } ] },
 
   // ─── Cognition & Mood ────────────────────────────────────────────────
   { cat: 'cognition', name: 'Semax',           slug: 'semax',                    sub: 'Heptapeptide nootropic',            variants: [
-    { mass: '5 mg', price: 155 }, { mass: '10 mg', price: 235 } ] },
+    { mass: '5 mg', price: 200 }, { mass: '10 mg', price: 290 } ] },
   { cat: 'cognition', name: 'Selank',          slug: 'selank',                   sub: 'Synthetic anxiolytic peptide',      variants: [
-    { mass: '5 mg', price: 155 }, { mass: '10 mg', price: 275 } ] },
-  { cat: 'cognition', name: 'Cerebrolysin',    slug: 'cerebrolysin',             sub: 'Neuropeptide preparation',          variants: [
-    { mass: '60 mg', vials: 10, price: 135 } ] },
+    { mass: '5 mg', price: 200 }, { mass: '10 mg', price: 310 } ] },
   { cat: 'cognition', name: 'DSIP',            slug: 'dsip',                     sub: 'Delta-sleep-inducing peptide',      variants: [
-    { mass: '5 mg', price: 170 }, { mass: '10 mg', price: 255 }, { mass: '15 mg', price: 340 } ] },
+    { mass: '5 mg', price: 225 }, { mass: '10 mg', price: 330 }, { mass: '15 mg', price: 445 } ] },
   { cat: 'cognition', name: 'Semax + Selank',  slug: 'semax-selank-blend',       sub: 'Semax + Selank nootropic blend',    variants: [
-    { mass: '20 mg', price: 375 } ] },
+    { mass: '20 mg', price: 485 } ] },
   { cat: 'cognition', name: 'PE 22-28',        slug: 'pe-22-28',                 sub: 'Spadin-derived peptide',            variants: [
-    { mass: '10 mg', price: 340 } ] },
+    { mass: '10 mg', price: 445 } ] },
+  { cat: 'cognition', name: 'P21',             slug: 'p21',                      sub: 'CNTF-derived neurogenic peptide',   noSheet: true, variants: [
+    { mass: '10 mg', price: 420 } ] },
+  { cat: 'cognition', name: 'P21 (adamantane)', slug: 'p21-adamantane',          sub: 'Adamantane-modified P21',           noSheet: true, variants: [
+    { mass: '10 mg', price: 1805 } ] },
   { cat: 'cognition', name: 'Melatonin',       slug: 'melatonin',                sub: 'N-acetyl-5-methoxytryptamine',      variants: [
-    { mass: '10 mg', price: 235 } ] },
+    { mass: '10 mg', price: 310 } ] },
   { cat: 'cognition', name: 'Adamax',          slug: 'adamax',                   sub: 'Adamantane nootropic peptide',      variants: [
-    { mass: '5 mg', price: 710 } ] },
+    { mass: '5 mg', price: 925 } ] },
 
   // ─── Hormones, Sexual Health & Misc ──────────────────────────────────
   { cat: 'misc',      name: 'Thymosin Alpha-1',slug: 'thymosin-alpha-1',         sub: 'Synthetic immune-modulating peptide', variants: [
-    { mass: '5 mg', price: 405 }, { mass: '10 mg', price: 780 } ] },
+    { mass: '5 mg', price: 530 }, { mass: '10 mg', price: 1015 } ] },
+  { cat: 'misc',      name: 'VIP',             slug: 'vip',                      sub: 'Vasoactive intestinal peptide',     noSheet: true, variants: [
+    { mass: '5 mg', price: 445 }, { mass: '10 mg', price: 840 } ] },
+  { cat: 'misc',      name: 'PNC-27',          slug: 'pnc-27',                   sub: 'p53-derived chimeric peptide',      noSheet: true, variants: [
+    { mass: '5 mg', price: 530 }, { mass: '10 mg', price: 1015 } ] },
+  { cat: 'misc',      name: 'Teriparatide',    slug: 'teriparatide',             sub: 'Recombinant PTH (1-34)',            noSheet: true, variants: [
+    { mass: '10 mg', price: 1235 } ] },
   { cat: 'misc',      name: 'PT-141',          slug: 'pt-141',                   sub: 'Bremelanotide, melanocortin agonist',variants: [
-    { mass: '10 mg', price: 255 } ] },
+    { mass: '10 mg', price: 330 } ] },
   { cat: 'misc',      name: 'Melanotan-II',    slug: 'melanotan-ii',             sub: 'Synthetic alpha-MSH analog',        variants: [
-    { mass: '10 mg', price: 220 } ] },
+    { mass: '10 mg', price: 290 } ] },
   { cat: 'misc',      name: 'B12',             slug: 'b12-methylcobalamin',      sub: 'Methylcobalamin',                   variants: [
     { mass: '10 ml', price: 205 } ] },
   { cat: 'misc',      name: 'KissPeptin-10',   slug: 'kisspeptin-10',            sub: 'Kisspeptin-derived decapeptide',    variants: [
-    { mass: '5 mg', price: 205 }, { mass: '10 mg', price: 375 } ] },
+    { mass: '5 mg', price: 265 }, { mass: '10 mg', price: 485 } ] },
   { cat: 'misc',      name: 'Melanotan-1',     slug: 'melanotan-1',              sub: 'Afamelanotide, alpha-MSH analog',   variants: [
-    { mass: '5 mg', price: 220 } ] },
+    { mass: '5 mg', price: 290 } ] },
 
   // ─── Aesthetics & Lipolytics ─────────────────────────────────────────
   { cat: 'aesthetics', name: 'Lemon Bottle',   slug: 'lemon-bottle',             sub: 'Lipolytic solution',                variants: [
-    { mass: '10 ml', price: 235 } ] },
+    { mass: '10 ml', price: 310 } ] },
   { cat: 'aesthetics', name: 'Lipo-C',         slug: 'lipo-c',                   sub: 'Lipotropic combination (LC120)',    variants: [
-    { mass: '10 ml', price: 275 } ] },
+    { mass: '10 ml', price: 355 } ] },
   { cat: 'aesthetics', name: 'Lipo-B',         slug: 'lipo-b',                   sub: 'Lipotropic combination (LC216)',    variants: [
-    { mass: '10 ml', price: 275 } ] },
+    { mass: '10 ml', price: 355 } ] },
   { cat: 'aesthetics', name: 'L-Carnitine',    slug: 'l-carnitine',              sub: 'Levocarnitine solution',            variants: [
-    { mass: '10 ml', price: 275 } ] },
+    { mass: '10 ml', price: 355 } ] },
 
   // ─── Accessories ─────────────────────────────────────────────────────
   { cat: 'accessory', name: 'BAC Water',       slug: 'bac-water',                sub: 'Bacteriostatic water for reconstitution', variants: [
-    { mass: '10 ml', vials: 11, price: 15 } ] },
+    { mass: '3 ml', price: 20 }, { mass: '10 ml', vials: 11, price: 25 } ] },
 ];
 
 /* ═════════════════════════════════════════════════════════════════════════
@@ -1760,7 +1785,7 @@ function renderCard(p) {
           <span class="price__unit">/ box</span>
         </div>
         <div class="product-card__actions">
-          <a class="pc-btn pc-btn--ghost" href="datasheets/${escapeHtml(p.slug)}.pdf" target="_blank" rel="noopener">Data sheet</a>
+          ${p.noSheet ? '' : `<a class="pc-btn pc-btn--ghost" href="datasheets/${escapeHtml(p.slug)}.pdf" target="_blank" rel="noopener">Data sheet</a>`}
           <button type="button" class="pc-btn pc-btn--primary cart-add"
             data-key="${escapeHtml(p.slug + '|' + def.mass)}"
             data-name="${escapeHtml(p.name)}"
@@ -1996,7 +2021,7 @@ renderJumpMenu();
   const CODES = {
     // Metabolic & GLP-1
     'tirzepatide|10 mg':'TR10','tirzepatide|15 mg':'TR15','tirzepatide|20 mg':'TR20','tirzepatide|30 mg':'TR30','tirzepatide|40 mg':'TR40','tirzepatide|50 mg':'TR50','tirzepatide|60 mg':'TR60','tirzepatide|100 mg':'TR100','tirzepatide|120 mg':'TR120',
-    'retatrutide|5 mg':'RT5','retatrutide|10 mg':'RT10','retatrutide|15 mg':'RT15','retatrutide|20 mg':'RT20','retatrutide|30 mg':'RT30','retatrutide|40 mg':'RT40','retatrutide|50 mg':'RT50','retatrutide|60 mg':'RT60',
+    'retatrutide|10 mg':'RT10','retatrutide|20 mg':'RT20','retatrutide|30 mg':'RT30','retatrutide|40 mg':'RT40','retatrutide|50 mg':'RT50','retatrutide|60 mg':'RT60',
     'mots-c|10 mg':'MS10','mots-c|40 mg':'MS40',
     'aod-9604|5 mg':'5AD','aod-9604|10 mg':'10AD',
     '5-amino-1mq|5 mg':'5:00 AM','5-amino-1mq|10 mg':'10:00 AM','5-amino-1mq|50 mg':'50AM',
@@ -2006,7 +2031,6 @@ renderJumpMenu();
     'cagrisema|10 mg':'CS10',
     'mazdutide|5 mg':'MDT5','mazdutide|10 mg':'MDT10',
     'survodutide|10 mg':'SUR10',
-    'retatrutide-cagrilintide-blend|10 mg':'RC10',
     // Recovery & Repair
     'bpc-157|5 mg':'BC5','bpc-157|10 mg':'BC10','bpc-157|20 mg':'BC20',
     'tb-500|5 mg':'BT5','tb-500|10 mg':'BT10','tb-500|20 mg':'BT20',
@@ -2014,7 +2038,7 @@ renderJumpMenu();
     'bpc-157-tb-500-blend|10 mg':'BB10','bpc-157-tb-500-blend|20 mg':'BB20',
     'glow|70 mg':'BBG70',
     'klow|80 mg':'KLOW',
-    'll-37|5 mg':'375',
+    'tb-500-frag|10 mg':'B10F',
     // Growth & GH Axis
     'igf-1-lr3|0.1 mg':'IG01','igf-1-lr3|1 mg':'IG1',
     'ipamorelin|5 mg':'IP5','ipamorelin|10 mg':'IP10',
@@ -2022,14 +2046,11 @@ renderJumpMenu();
     'tesamorelin|5 mg':'TSM5','tesamorelin|10 mg':'TSM10','tesamorelin|20 mg':'TSM20',
     'sermorelin|5 mg':'SMO5','sermorelin|10 mg':'SMO10',
     'hcg|5,000 IU':'G5K','hcg|10,000 IU':'G10K',
-    'hmg|75 IU':'G75',
     'cjc-1295-no-dac|5 mg':'CND5','cjc-1295-no-dac|10 mg':'CND10',
     'cjc-1295-dac|5 mg':'CD5','cjc-1295-dac|10 mg':'CD10',
     'tesamorelin-ipamorelin-blend|18 mg':'T118',
-    'ghrp-2|5 mg':'G25','ghrp-2|10 mg':'G210',
     'ghrp-6|5 mg':'G65','ghrp-6|10 mg':'G610',
     'hexarelin|2 mg':'HX2','hexarelin|5 mg':'HX5',
-    'hgh-fragment-176-191|2 mg':'FR2','hgh-fragment-176-191|5 mg':'FR5','hgh-fragment-176-191|10 mg':'FR10',
     'mgf|2 mg':'FM2',
     'peg-mgf|2 mg':'FMP2',
     'gonadorelin|2 mg':'GND2',
@@ -2043,19 +2064,23 @@ renderJumpMenu();
     'ahk-cu|100 mg':'AU100',
     'nad-plus|500 mg':'NJ500','nad-plus|1000 mg':'NJ1000',
     'thymalin|10 mg':'TY10',
+    'testagen|20 mg':'TG20',
     'n-acetyl-epitalon-amidate|5 mg':'NET5',
     // Cognition & Mood
     'semax|5 mg':'XA5','semax|10 mg':'XA10',
     'selank|5 mg':'SK5','selank|10 mg':'SK10',
-    'cerebrolysin|60 mg':'C60',
     'dsip|5 mg':'DS5','dsip|10 mg':'DS10','dsip|15 mg':'DS15',
     'semax-selank-blend|20 mg':'XS20',
     'pe-22-28|10 mg':'PE10',
     'melatonin|10 mg':'MT10',
     'adamax|5 mg':'AD5',
+    'p21|10 mg':'P210','p21-adamantane|10 mg':'PP10',
     // Hormones, Sexual Health & Misc
     'thymosin-alpha-1|5 mg':'TA5','thymosin-alpha-1|10 mg':'TA10',
     'pt-141|10 mg':'P41',
+    'vip|5 mg':'VP5','vip|10 mg':'VP10',
+    'pnc-27|5 mg':'PN5','pnc-27|10 mg':'PN10',
+    'teriparatide|10 mg':'TER10',
     'melanotan-ii|10 mg':'ML10',
     'b12-methylcobalamin|10 ml':'B12',
     'kisspeptin-10|5 mg':'KS5','kisspeptin-10|10 mg':'KS10',
@@ -2067,6 +2092,7 @@ renderJumpMenu();
     'l-carnitine|10 ml':'LC500',
     // Accessories
     'bac-water|10 ml':'WA10',
+    'bac-water|3 ml':'WA3',
   };
 
   const BY_KEY = {};
