@@ -1562,8 +1562,10 @@ select.pc-size option { background: var(--bg-3); color: var(--text-1); }
    • VIP 5/10 mg, PNC-27 5/10 mg, Teriparatide 10 mg, TB-500 FRAG 10 mg,
      P21 10 mg, P21 adamantane 10 mg, Testagen 20 mg,
      BAC Water 3 ml ($20)
-   New SKUs carry `noSheet: true` — the Data sheet button is suppressed
-   until a PDF exists in datasheets/. Write the PDF, drop the flag.
+   Data sheets for all of the above were written on 2026-08-04 and the
+   `noSheet` flags removed. The `noSheet: true` mechanism remains available
+   for any future SKU added before its sheet exists: set the flag and the
+   Data sheet button is suppressed until a PDF lands in datasheets/.
 
    DECISIONS:
    • BAC Water held off the ratchet again: 10 ml $25, 3 ml $20.
@@ -1623,7 +1625,7 @@ const PRODUCTS = [
     { mass: '5 mg', price: 225 }, { mass: '10 mg', price: 310 } ] },
   { cat: 'recovery',  name: 'BPC-157 + TB-500',slug: 'bpc-157-tb-500-blend',     sub: 'Recovery stack blend',              variants: [
     { mass: '10 mg', price: 485 }, { mass: '20 mg', price: 970 } ] },
-  { cat: 'recovery',  name: 'TB-500 FRAG',    slug: 'tb-500-frag',              sub: 'Thymosin Beta-4 active fragment',   noSheet: true, variants: [
+  { cat: 'recovery',  name: 'TB-500 FRAG',    slug: 'tb-500-frag',              sub: 'Thymosin Beta-4 active fragment',   variants: [
     { mass: '10 mg', price: 420 } ] },
   { cat: 'recovery',  name: 'GLOW',            slug: 'glow',                     sub: 'BPC-157 + GHK-Cu + TB-500',         variants: [
     { mass: '70 mg', price: 1015 } ] },
@@ -1675,7 +1677,7 @@ const PRODUCTS = [
     { mass: '100 mg', price: 330 } ] },
   { cat: 'longevity', name: 'NAD+',            slug: 'nad-plus',                 sub: 'Nicotinamide adenine dinucleotide', variants: [
     { mass: '500 mg', price: 355 }, { mass: '1000 mg', price: 530 } ] },
-  { cat: 'longevity', name: 'Testagen',        slug: 'testagen',                 sub: 'Peptide bioregulator',              noSheet: true, variants: [
+  { cat: 'longevity', name: 'Testagen',        slug: 'testagen',                 sub: 'Peptide bioregulator',              variants: [
     { mass: '20 mg', price: 575 } ] },
   { cat: 'longevity', name: 'Thymalin',        slug: 'thymalin',                 sub: 'Thymic peptide preparation',        variants: [
     { mass: '10 mg', price: 375 } ] },
@@ -1693,9 +1695,9 @@ const PRODUCTS = [
     { mass: '20 mg', price: 485 } ] },
   { cat: 'cognition', name: 'PE 22-28',        slug: 'pe-22-28',                 sub: 'Spadin-derived peptide',            variants: [
     { mass: '10 mg', price: 445 } ] },
-  { cat: 'cognition', name: 'P21',             slug: 'p21',                      sub: 'CNTF-derived neurogenic peptide',   noSheet: true, variants: [
+  { cat: 'cognition', name: 'P21',             slug: 'p21',                      sub: 'CNTF-derived neurogenic peptide',   variants: [
     { mass: '10 mg', price: 420 } ] },
-  { cat: 'cognition', name: 'P21 (adamantane)', slug: 'p21-adamantane',          sub: 'Adamantane-modified P21',           noSheet: true, variants: [
+  { cat: 'cognition', name: 'P21 (adamantane)', slug: 'p21-adamantane',          sub: 'Adamantane-modified P21',           variants: [
     { mass: '10 mg', price: 1805 } ] },
   { cat: 'cognition', name: 'Melatonin',       slug: 'melatonin',                sub: 'N-acetyl-5-methoxytryptamine',      variants: [
     { mass: '10 mg', price: 310 } ] },
@@ -1705,11 +1707,11 @@ const PRODUCTS = [
   // ─── Hormones, Sexual Health & Misc ──────────────────────────────────
   { cat: 'misc',      name: 'Thymosin Alpha-1',slug: 'thymosin-alpha-1',         sub: 'Synthetic immune-modulating peptide', variants: [
     { mass: '5 mg', price: 530 }, { mass: '10 mg', price: 1015 } ] },
-  { cat: 'misc',      name: 'VIP',             slug: 'vip',                      sub: 'Vasoactive intestinal peptide',     noSheet: true, variants: [
+  { cat: 'misc',      name: 'VIP',             slug: 'vip',                      sub: 'Vasoactive intestinal peptide',     variants: [
     { mass: '5 mg', price: 445 }, { mass: '10 mg', price: 840 } ] },
-  { cat: 'misc',      name: 'PNC-27',          slug: 'pnc-27',                   sub: 'p53-derived chimeric peptide',      noSheet: true, variants: [
+  { cat: 'misc',      name: 'PNC-27',          slug: 'pnc-27',                   sub: 'p53-derived chimeric peptide',      variants: [
     { mass: '5 mg', price: 530 }, { mass: '10 mg', price: 1015 } ] },
-  { cat: 'misc',      name: 'Teriparatide',    slug: 'teriparatide',             sub: 'Recombinant PTH (1-34)',            noSheet: true, variants: [
+  { cat: 'misc',      name: 'Teriparatide',    slug: 'teriparatide',             sub: 'Recombinant PTH (1-34)',            variants: [
     { mass: '10 mg', price: 1235 } ] },
   { cat: 'misc',      name: 'PT-141',          slug: 'pt-141',                   sub: 'Bremelanotide, melanocortin agonist',variants: [
     { mass: '10 mg', price: 330 } ] },
