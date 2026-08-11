@@ -407,6 +407,31 @@ select.pc-size:focus-visible {
 }
 select.pc-size option { background: var(--bg-3); color: var(--text-1); }
 
+.pc-companion {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  background: var(--ember-muted);
+  border: 1px solid rgba(255,90,31,0.25);
+  border-radius: var(--radius-sm, 6px);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+  color: var(--text-2);
+}
+
+.cart-gate-note {
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  background: var(--ember-muted);
+  border: 1px solid rgba(255,90,31,0.30);
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--text-1);
+}
+
 .product-card__footer {
   display: flex;
   flex-direction: column;
@@ -1254,6 +1279,8 @@ select.pc-size option { background: var(--bg-3); color: var(--text-1); }
         <span class="cart-subtotal__label">Subtotal</span>
         <span class="cart-subtotal__value" id="cart-subtotal">$0</span>
       </div>
+      <p class="cart-gate-note" id="cart-gate-note" hidden></p>
+      <p class="cart-foot__note" id="cart-sale-note" hidden></p>
       <p class="cart-foot__note">
         Subtotal excludes shipping. No payment is taken here &mdash; we email you to confirm
         stock, add shipping, and arrange payment. Allow 2&ndash;4 weeks for delivery.
@@ -1373,6 +1400,10 @@ select.pc-size option { background: var(--bg-3); color: var(--text-1); }
       <div class="cart-subtotal">
         <span class="cart-subtotal__label">Subtotal</span>
         <span class="cart-subtotal__value" id="cart-subtotal-2">$0</span>
+      </div>
+      <div class="cart-subtotal cart-subtotal--disc" id="cart-sale-row" hidden>
+        <span class="cart-subtotal__label"><span id="cart-sale-name">Back to School</span> sale (<span id="cart-sale-pct">20</span>% off)</span>
+        <span class="cart-subtotal__value" id="cart-sale-amt">-$0</span>
       </div>
       <div class="cart-subtotal cart-subtotal--disc" id="cart-discount-row" hidden>
         <span class="cart-subtotal__label">Referral <span id="cart-discount-code"></span> (<span id="cart-discount-pct">10</span>% off)</span>
@@ -1735,7 +1766,7 @@ const PRODUCTS = [
     { mass: '10 ml', price: 355 } ] },
 
   // ─── Accessories ─────────────────────────────────────────────────────
-  { cat: 'accessory', name: 'BAC Water',       slug: 'bac-water',                sub: 'Bacteriostatic water for reconstitution', variants: [
+  { cat: 'accessory', name: 'BAC Water',       slug: 'bac-water',                sub: 'Bacteriostatic water for reconstitution', needsCompanion: true, variants: [
     { mass: '3 ml', price: 20 }, { mass: '10 ml', vials: 11, price: 25 } ] },
 ];
 
@@ -1780,6 +1811,7 @@ function renderCard(p) {
           <div><dt>Per vial</dt><dd>${sizeControl}</dd></div>
           <div><dt>Box</dt><dd class="pc-vials">${defVials} vials</dd></div>
         </dl>
+        ${p.needsCompanion ? `<p class="pc-companion">Must be added with other products. ${escapeHtml(p.name)} does not ship on its own \u2014 put anything else in your cart and it goes along with it.</p>` : ''}
       </div>
       <footer class="product-card__footer">
         <div class="product-card__price">
@@ -1981,24 +2013,54 @@ renderJumpMenu();
   // real codes from Kelley. Format:  'CODE': 'Referrer label (for your records)'.
   // Note: anything here is visible in the page source, so codes aren't secret.
   //
-  // FLOOD promo: every code is boosted to 20% off through the end of July 5, 2026
-  // Eastern. It auto-reverts to 10% after the cutoff — no second deploy needed.
-  // Cutoff is a fixed UTC instant (2026-07-05 midnight ET = EDT, UTC-4 = 07-06 04:00Z)
-  // so it's correct regardless of the visitor's own timezone.
-  const FLOOD_CUTOFF   = new Date('2026-07-06T04:00:00Z');
-  const FLOOD_ACTIVE   = new Date() < FLOOD_CUTOFF;
-  const DISCOUNT_RATE  = FLOOD_ACTIVE ? 0.20 : 0.10;
+  // SITEWIDE SALE — automatic, no code needed.
+  // Back to School: 20% off every order, applied on its own. Runs through the
+  // end of Aug 19, 2026 Eastern. The cutoff is a fixed UTC instant (Aug 19
+  // midnight ET = EDT, UTC-4 = 08-20 04:00Z) so it lands correctly no matter
+  // what timezone the visitor is in. After the cutoff SALE_RATE drops to 0,
+  // the sale row disappears and referral codes go back to being the only
+  // discount — no second deploy needed.
+  // TO END THE SALE EARLY: set SALE_RATE to 0. TO EXTEND IT: move SALE_CUTOFF.
+  const SALE_NAME    = 'Back to School';
+  const SALE_CUTOFF  = new Date('2026-08-20T04:00:00Z');
+  const SALE_ACTIVE  = new Date() < SALE_CUTOFF;
+  const SALE_RATE    = SALE_ACTIVE ? 0.20 : 0;
+  const SALE_PCT     = Math.round(SALE_RATE * 100);
+
+  // REFERRAL CODES — 10%, and they STACK on top of the sitewide sale, so a
+  // customer with a code pays 30% less while the sale is running. The two
+  // rates are added and applied to the subtotal once (20 + 10 = 30 off), which
+  // is what a customer expects "20% plus 10%" to mean.
+  // EDIT THIS LIST to add or remove an affiliate. Format:
+  //   'CODE': 'Referrer label (for your records)'
+  // Note: anything here is visible in the page source, so codes aren't secret.
+  const DISCOUNT_RATE  = 0.10;
   const DISCOUNT_PCT   = Math.round(DISCOUNT_RATE * 100); // whole-number % for UI copy
   const REFERRAL_CODES = {
-    'JORDAN10': 'Jordan',
-    'KELLEY10': 'Kelley',
-    'TIM10': 'Tim',
-    'DEREK10': 'Derek',
-    'WES10': 'Wes Osborne',
-    'NEIL10': 'Neil',
-    'HAYLEY10': 'Hayley McIntosh',
-    'ALIGNED10': 'Aligned Strength site (brand code)',
+    'JORDAN': 'Jordan',
+    'KELLEY': 'Kelley',
+    'TIM': 'Tim',
+    'DEREK': 'Derek',
+    'WES': 'Wes Osborne',
+    'NEIL': 'Neil',
+    'HAYLEY': 'Hayley McIntosh',
+    'ALIGNED': 'Aligned Strength site (brand code)',
+    'MORTEN': 'Morten',
   };
+  // Legacy aliases — the old NAME10 codes are already printed, posted and
+  // shared, so they still redeem and resolve to the new short name. Delete an
+  // entry here once you're confident that version is out of circulation.
+  const LEGACY_ALIASES = {
+    'JORDAN10': 'JORDAN',
+    'KELLEY10': 'KELLEY',
+    'TIM10': 'TIM',
+    'DEREK10': 'DEREK',
+    'WES10': 'WES',
+    'NEIL10': 'NEIL',
+    'HAYLEY10': 'HAYLEY',
+    'ALIGNED10': 'ALIGNED',
+  };
+  const resolveCode = (raw) => (REFERRAL_CODES[raw] ? raw : (LEGACY_ALIASES[raw] || null));
   const VENMO_HANDLE = 'vagabondmuscle'; // holding company Venmo (Vagabond Muscle)
   const ZELLE_EMAIL  = 'alignedaminos@proton.me'; // Zelle recipient (enrolled under Jordan Schwartz's bank)
   const ZELLE_NAME   = 'Jordan Schwartz';
@@ -2101,6 +2163,7 @@ renderJumpMenu();
   PRODUCTS.forEach(p => p.variants.forEach(v => {
     BY_KEY[p.slug + '|' + v.mass] = {
       name: p.name, slug: p.slug, sub: p.sub, cat: p.cat,
+      needsCompanion: !!p.needsCompanion,
       mass: v.mass, vials: v.vials || 10, price: v.price,
       code: CODES[p.slug + '|' + v.mass] || '',
     };
@@ -2133,7 +2196,12 @@ renderJumpMenu();
     const r = Math.round(Number(n) * 100) / 100;
     return '$' + r.toLocaleString('en-US', { minimumFractionDigits: r % 1 === 0 ? 0 : 2, maximumFractionDigits: 2 });
   };
-  const discountAmt = () => (appliedCode ? Math.round(subtotal() * DISCOUNT_RATE * 100) / 100 : 0);
+  // Sale and referral are additive: both percentages come off the same
+  // subtotal, so 20% + 10% is a straight 30% off rather than 20% then 10%
+  // of the remainder.
+  const saleAmt     = () => Math.round(subtotal() * SALE_RATE * 100) / 100;
+  const referralAmt = () => (appliedCode ? Math.round(subtotal() * DISCOUNT_RATE * 100) / 100 : 0);
+  const discountAmt = () => saleAmt() + referralAmt();
   const grandTotal  = () => subtotal() - discountAmt();
 
   // Unique web-order reference: AA-YYMMDD-XXXX. No backend/shared counter exists
@@ -2160,13 +2228,17 @@ renderJumpMenu();
     if (!raw) {
       appliedCode = null;
       msg.textContent = ''; msg.className = 'cart-referral__msg';
-    } else if (REFERRAL_CODES[raw]) {
-      appliedCode = raw;
-      msg.textContent = `Code applied — ${DISCOUNT_PCT}% off your order.`;
+    } else if (resolveCode(raw)) {
+      appliedCode = resolveCode(raw);
+      msg.textContent = SALE_ACTIVE
+        ? `Code applied — ${DISCOUNT_PCT}% off on top of the ${SALE_PCT}% ${SALE_NAME} sale. ${SALE_PCT + DISCOUNT_PCT}% off total.`
+        : `Code applied — ${DISCOUNT_PCT}% off your order.`;
       msg.className = 'cart-referral__msg is-ok';
     } else {
       appliedCode = null;
-      msg.textContent = "That code isn't valid — your order stands at full price.";
+      msg.textContent = SALE_ACTIVE
+        ? `That code isn't valid. The ${SALE_PCT}% ${SALE_NAME} sale still applies.`
+        : "That code isn't valid — your order stands at full price.";
       msg.className = 'cart-referral__msg is-err';
     }
     renderTotals();
@@ -2177,18 +2249,50 @@ renderJumpMenu();
     const sub = subtotal();
     $('cart-subtotal').textContent   = fmt(sub);
     $('cart-subtotal-2').textContent = fmt(sub);
+
+    const saleRow  = $('cart-sale-row');
     const discRow  = $('cart-discount-row');
     const totalRow = $('cart-total-row');
+    const saleNote = $('cart-sale-note');
+
+    // Sitewide sale — shown whenever it's running and there's something in the cart.
+    if (SALE_ACTIVE && sub > 0) {
+      $('cart-sale-name').textContent = SALE_NAME;
+      $('cart-sale-pct').textContent  = SALE_PCT;
+      $('cart-sale-amt').textContent  = '-' + fmtD(saleAmt());
+      saleRow.hidden = false;
+    } else {
+      saleRow.hidden = true;
+    }
+
+    // Referral code — stacks on top of the sale.
     if (appliedCode && sub > 0) {
-      $('cart-discount-2').textContent   = '-' + fmtD(discountAmt());
+      $('cart-discount-2').textContent    = '-' + fmtD(referralAmt());
       $('cart-discount-code').textContent = appliedCode;
       $('cart-discount-pct').textContent  = DISCOUNT_PCT;
-      $('cart-total-2').textContent      = fmtD(grandTotal());
       discRow.hidden = false;
-      totalRow.hidden = false;
     } else {
       discRow.hidden = true;
+    }
+
+    const anyDiscount = sub > 0 && (SALE_ACTIVE || appliedCode);
+    if (anyDiscount) {
+      $('cart-total-2').textContent = fmtD(grandTotal());
+      totalRow.hidden = false;
+    } else {
       totalRow.hidden = true;
+    }
+
+    // Plain-language nudge on the first cart screen.
+    if (saleNote) {
+      if (SALE_ACTIVE && sub > 0) {
+        saleNote.innerHTML = appliedCode
+          ? `<strong>${SALE_PCT}% ${escapeHtml(SALE_NAME)} sale applied automatically</strong>, plus ${DISCOUNT_PCT}% for code ${escapeHtml(appliedCode)} &mdash; ${SALE_PCT + DISCOUNT_PCT}% off, shown at the next step.`
+          : `<strong>${SALE_PCT}% ${escapeHtml(SALE_NAME)} sale applied automatically</strong> &mdash; shown at the next step. Have an affiliate code? Add it there for another ${DISCOUNT_PCT}% off.`;
+        saleNote.hidden = false;
+      } else {
+        saleNote.hidden = true;
+      }
     }
   }
 
@@ -2246,7 +2350,30 @@ renderJumpMenu();
     const hasItems = cart.length > 0;
 
     empty.style.display = hasItems ? 'none' : 'block';
-    $('cart-continue').disabled = !hasItems;
+
+    // Accessory gate: BAC water (and anything else flagged needsCompanion)
+    // can sit in the cart on its own, but checkout stays shut until there's a
+    // real product to ship it with.
+    const gateNames = [...new Set(
+      cart.filter(l => BY_KEY[l.key] && BY_KEY[l.key].needsCompanion)
+          .map(l => BY_KEY[l.key].name)
+    )];
+    const hasCompanion = cart.some(l => BY_KEY[l.key] && !BY_KEY[l.key].needsCompanion);
+    const blocked = hasItems && gateNames.length > 0 && !hasCompanion;
+
+    $('cart-continue').disabled = !hasItems || blocked;
+
+    const gateNote = $('cart-gate-note');
+    if (gateNote) {
+      if (blocked) {
+        const label = gateNames.join(' and ');
+        gateNote.textContent =
+          `${label} must be added with other products. Add anything else to your order and it ships along with it.`;
+        gateNote.hidden = false;
+      } else {
+        gateNote.hidden = true;
+      }
+    }
 
     wrap.innerHTML = cart.map(l => {
       const p = BY_KEY[l.key];
@@ -2439,10 +2566,16 @@ renderJumpMenu();
       const p = BY_KEY[l.key];
       return `<div class="ln"><span>${l.qty}&times; ${escapeHtml(p.name)} (${escapeHtml(p.mass)})</span><span>${fmt(p.price * l.qty)}</span></div>`;
     }).join('');
-    if (appliedCode && subtotal() > 0) {
+    if (subtotal() > 0 && (SALE_ACTIVE || appliedCode)) {
+      const saleLine = SALE_ACTIVE
+        ? `<div class="ln"><span>${escapeHtml(SALE_NAME)} sale (${SALE_PCT}% off)</span><span>-${fmtD(saleAmt())}</span></div>`
+        : '';
+      const refLine = appliedCode
+        ? `<div class="ln"><span>Referral ${escapeHtml(appliedCode)} (${DISCOUNT_PCT}% off)</span><span>-${fmtD(referralAmt())}</span></div>`
+        : '';
       return rows +
         `<div class="ln"><span>Subtotal (free shipping)</span><span>${fmt(subtotal())}</span></div>` +
-        `<div class="ln"><span>Referral ${escapeHtml(appliedCode)} (${DISCOUNT_PCT}% off)</span><span>-${fmtD(discountAmt())}</span></div>` +
+        saleLine + refLine +
         `<div class="ln sub"><span>Order total</span><span>${fmtD(grandTotal())}</span></div>`;
     }
     return rows + `<div class="ln sub"><span>Order total (free shipping)</span><span>${fmt(subtotal())}</span></div>`;
@@ -2593,6 +2726,11 @@ renderJumpMenu();
         return { name: p.name, code: p.code || '', mass: p.mass, vials: p.vials || 10, slug: p.slug, qty: l.qty, unit_price: p.price };
       }),
       referral_code: referralCode,
+      sale_name: SALE_ACTIVE ? SALE_NAME : '',
+      sale_rate: SALE_RATE,
+      sale_discount: saleAmt(),
+      referral_rate: referralCode ? DISCOUNT_RATE : 0,
+      referral_discount: referralAmt(),
       discount: discount,
       notes: notes || ''
     };
@@ -2601,8 +2739,13 @@ renderJumpMenu();
       JSON.stringify(invoicePayload, null, 2) +
       '\nEND INVOICE PAYLOAD';
 
-    const totalsText = referralCode
-      ? `Subtotal (free shipping): ${fmt(subtotal())}\nReferral ${referralCode} (${DISCOUNT_PCT}% off): -${fmtD(discount)}\nOrder total: ${fmtD(total)}`
+    const totalsText = (SALE_ACTIVE || referralCode)
+      ? [
+          `Subtotal (free shipping): ${fmt(subtotal())}`,
+          SALE_ACTIVE ? `${SALE_NAME} sale (${SALE_PCT}% off): -${fmtD(saleAmt())}` : null,
+          referralCode ? `Referral ${referralCode} (${DISCOUNT_PCT}% off): -${fmtD(referralAmt())}` : null,
+          `Order total: ${fmtD(total)}`,
+        ].filter(Boolean).join('\n')
       : `Order total (free shipping): ${fmt(subtotal())}`;
 
     const message =
