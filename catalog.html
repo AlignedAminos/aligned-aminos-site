@@ -2864,5 +2864,77 @@ ${payloadBlock}`;
 })();
 </script>
 
+<!-- ============================================================================
+     Aligned Aminos — A–Z "Jump to product" menu  (drop-in block)
+     ============================================================================ -->
+<style>
+  .product-card { scroll-margin-top: 240px; }
+  .product-card--flash {
+    box-shadow: 0 0 0 2px var(--color-ember, #FF5A1F), 0 0 24px rgba(255, 90, 31, 0.35);
+    transition: box-shadow 180ms ease;
+  }
+</style>
+<script>
+(function () {
+  function slugify(s) {
+    return 'prod-' + s.toLowerCase().trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+  function init() {
+    var jump = document.querySelector('.catalog__jump');
+    var cards = document.querySelectorAll('.product-card');
+    if (!jump || !cards.length) { return setTimeout(init, 60); }
+    if (document.getElementById('product-jump')) { return; }
+    var used = {}, entries = [];
+    cards.forEach(function (card) {
+      var titleEl = card.querySelector('.product-card__title');
+      if (!titleEl) { return; }
+      var name = titleEl.textContent.trim();
+      if (!name) { return; }
+      var id = slugify(name);
+      while (used[id]) { id = id + '-x'; }
+      used[id] = true;
+      if (!card.id) { card.id = id; }
+      entries.push({ name: name, id: card.id });
+    });
+    if (!entries.length) { return; }
+    entries.sort(function (a, b) { return a.name.toLowerCase().localeCompare(b.name.toLowerCase()); });
+    var label = document.createElement('label');
+    label.className = 'catalog__jump-label';
+    label.setAttribute('for', 'product-jump');
+    label.textContent = 'Find product';
+    var sel = document.createElement('select');
+    sel.className = 'catalog__jump-select';
+    sel.id = 'product-jump';
+    sel.setAttribute('aria-label', 'Jump to product, A to Z');
+    var placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = 'Jump to product (A–Z)…';
+    sel.appendChild(placeholder);
+    entries.forEach(function (e) {
+      var opt = document.createElement('option');
+      opt.value = e.id;
+      opt.textContent = e.name;
+      sel.appendChild(opt);
+    });
+    sel.addEventListener('change', function (ev) {
+      var id = ev.target.value;
+      if (!id) { return; }
+      var target = document.getElementById(id);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        target.classList.add('product-card--flash');
+        setTimeout(function () { target.classList.remove('product-card--flash'); }, 1500);
+      }
+      ev.target.value = '';
+    });
+    jump.appendChild(label);
+    jump.appendChild(sel);
+  }
+  if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); }
+  else { init(); }
+})();
+</script>
 </body>
 </html>
