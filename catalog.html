@@ -1404,7 +1404,7 @@ select.pc-size option { background: var(--bg-3); color: var(--text-1); }
         <span class="cart-subtotal__value" id="cart-subtotal-2">$0</span>
       </div>
       <div class="cart-subtotal cart-subtotal--disc" id="cart-sale-row" hidden>
-        <span class="cart-subtotal__label"><span id="cart-sale-name">Back to School</span> sale (<span id="cart-sale-pct">20</span>% off)</span>
+        <span class="cart-subtotal__label"><span id="cart-sale-name"></span> sale (<span id="cart-sale-pct">20</span>% off)</span>
         <span class="cart-subtotal__value" id="cart-sale-amt">-$0</span>
       </div>
       <div class="cart-subtotal cart-subtotal--disc" id="cart-discount-row" hidden>
@@ -2016,14 +2016,14 @@ renderJumpMenu();
   // Note: anything here is visible in the page source, so codes aren't secret.
   //
   // SITEWIDE SALE — automatic, no code needed.
-  // Back to School: 20% off every order, applied on its own. Runs through the
+  // Sitewide discount, applied on its own. Runs through the
   // end of Aug 19, 2026 Eastern. The cutoff is a fixed UTC instant (Aug 19
   // midnight ET = EDT, UTC-4 = 08-20 04:00Z) so it lands correctly no matter
   // what timezone the visitor is in. After the cutoff SALE_RATE drops to 0,
   // the sale row disappears and referral codes go back to being the only
   // discount — no second deploy needed.
   // TO END THE SALE EARLY: set SALE_RATE to 0. TO EXTEND IT: move SALE_CUTOFF.
-  const SALE_NAME    = 'Back to School';
+  const SALE_NAME    = '';
   const SALE_CUTOFF  = new Date('2026-08-20T04:00:00Z');
   const SALE_ACTIVE  = new Date() < SALE_CUTOFF;
   const SALE_RATE    = SALE_ACTIVE ? 0.20 : 0;
