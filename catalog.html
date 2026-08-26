@@ -2039,6 +2039,7 @@ renderJumpMenu();
   const DISCOUNT_RATE  = 0.10;
   const DISCOUNT_PCT   = Math.round(DISCOUNT_RATE * 100); // whole-number % for UI copy
   const REFERRAL_CODES = {
+  VETERAN: 'Veteran',
     'JORDAN': 'Jordan',
     'KELLEY': 'Kelley',
     'TIM': 'Tim',
@@ -2202,7 +2203,9 @@ renderJumpMenu();
   // subtotal, so 20% + 10% is a straight 30% off rather than 20% then 10%
   // of the remainder.
   const saleAmt     = () => Math.round(subtotal() * SALE_RATE * 100) / 100;
-  const referralAmt = () => (appliedCode ? Math.round(subtotal() * DISCOUNT_RATE * 100) / 100 : 0);
+  const referralRate = () => (appliedCode === 'VETERAN' ? 0.20 : DISCOUNT_RATE);
+  const referralPct  = () => (appliedCode === 'VETERAN' ? 20 : DISCOUNT_PCT);
+  const referralAmt = () => (appliedCode ? Math.round(subtotal() * referralRate() * 100) / 100 : 0);
   const discountAmt = () => saleAmt() + referralAmt();
   const grandTotal  = () => subtotal() - discountAmt();
 
@@ -2234,7 +2237,7 @@ renderJumpMenu();
       appliedCode = resolveCode(raw);
       msg.textContent = SALE_ACTIVE
         ? `Code applied — ${DISCOUNT_PCT}% off on top of the ${SALE_PCT}% ${SALE_NAME} sale. ${SALE_PCT + DISCOUNT_PCT}% off total.`
-        : `Code applied — ${DISCOUNT_PCT}% off your order.`;
+        : `Code applied — ${referralPct()}% off your order.`;
       msg.className = 'cart-referral__msg is-ok';
     } else {
       appliedCode = null;
@@ -2271,7 +2274,7 @@ renderJumpMenu();
     if (appliedCode && sub > 0) {
       $('cart-discount-2').textContent    = '-' + fmtD(referralAmt());
       $('cart-discount-code').textContent = appliedCode;
-      $('cart-discount-pct').textContent  = DISCOUNT_PCT;
+      $('cart-discount-pct').textContent  = referralPct();
       discRow.hidden = false;
     } else {
       discRow.hidden = true;
@@ -2573,7 +2576,7 @@ renderJumpMenu();
         ? `<div class="ln"><span>${escapeHtml(SALE_NAME)} sale (${SALE_PCT}% off)</span><span>-${fmtD(saleAmt())}</span></div>`
         : '';
       const refLine = appliedCode
-        ? `<div class="ln"><span>Referral ${escapeHtml(appliedCode)} (${DISCOUNT_PCT}% off)</span><span>-${fmtD(referralAmt())}</span></div>`
+        ? `<div class="ln"><span>Referral ${escapeHtml(appliedCode)} (${referralPct()}% off)</span><span>-${fmtD(referralAmt())}</span></div>`
         : '';
       return rows +
         `<div class="ln"><span>Subtotal (free shipping)</span><span>${fmt(subtotal())}</span></div>` +
