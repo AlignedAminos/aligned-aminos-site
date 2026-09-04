@@ -2023,8 +2023,8 @@ renderJumpMenu();
   // the sale row disappears and referral codes go back to being the only
   // discount — no second deploy needed.
   // TO END THE SALE EARLY: set SALE_RATE to 0. TO EXTEND IT: move SALE_CUTOFF.
-  const SALE_NAME    = '';
-  const SALE_CUTOFF  = new Date('2026-08-20T04:00:00Z');
+  const SALE_NAME    = 'Labor Day';
+  const SALE_CUTOFF  = new Date('2026-09-07T04:00:00Z');
   const SALE_ACTIVE  = new Date() < SALE_CUTOFF;
   const SALE_RATE    = SALE_ACTIVE ? 0.20 : 0;
   const SALE_PCT     = Math.round(SALE_RATE * 100);
@@ -2206,7 +2206,7 @@ renderJumpMenu();
   const referralRate = () => (appliedCode === 'VETERAN' ? 0.20 : DISCOUNT_RATE);
   const referralPct  = () => (appliedCode === 'VETERAN' ? 20 : DISCOUNT_PCT);
   const referralAmt = () => (appliedCode ? Math.round(subtotal() * referralRate() * 100) / 100 : 0);
-  const discountAmt = () => saleAmt() + referralAmt();
+  const discountAmt = () => (appliedCode === 'VETERAN' ? referralAmt() : saleAmt() + referralAmt());
   const grandTotal  = () => subtotal() - discountAmt();
 
   // Unique web-order reference: AA-YYMMDD-XXXX. No backend/shared counter exists
@@ -2235,13 +2235,13 @@ renderJumpMenu();
       msg.textContent = ''; msg.className = 'cart-referral__msg';
     } else if (resolveCode(raw)) {
       appliedCode = resolveCode(raw);
-      msg.textContent = SALE_ACTIVE
+      msg.textContent = (SALE_ACTIVE && appliedCode !== 'VETERAN')
         ? `Code applied — ${DISCOUNT_PCT}% off on top of the ${SALE_PCT}% ${SALE_NAME} sale. ${SALE_PCT + DISCOUNT_PCT}% off total.`
         : `Code applied — ${referralPct()}% off your order.`;
       msg.className = 'cart-referral__msg is-ok';
     } else {
       appliedCode = null;
-      msg.textContent = SALE_ACTIVE
+      msg.textContent = (SALE_ACTIVE && appliedCode !== 'VETERAN')
         ? `That code isn't valid. The ${SALE_PCT}% ${SALE_NAME} sale still applies.`
         : "That code isn't valid — your order stands at full price.";
       msg.className = 'cart-referral__msg is-err';
@@ -2261,7 +2261,7 @@ renderJumpMenu();
     const saleNote = $('cart-sale-note');
 
     // Sitewide sale — shown whenever it's running and there's something in the cart.
-    if (SALE_ACTIVE && sub > 0) {
+    if (SALE_ACTIVE && sub > 0 && appliedCode !== 'VETERAN') {
       $('cart-sale-name').textContent = SALE_NAME;
       $('cart-sale-pct').textContent  = SALE_PCT;
       $('cart-sale-amt').textContent  = '-' + fmtD(saleAmt());
@@ -2290,7 +2290,7 @@ renderJumpMenu();
 
     // Plain-language nudge on the first cart screen.
     if (saleNote) {
-      if (SALE_ACTIVE && sub > 0) {
+      if (SALE_ACTIVE && sub > 0 && appliedCode !== 'VETERAN') {
         saleNote.innerHTML = appliedCode
           ? `<strong>${SALE_PCT}% ${escapeHtml(SALE_NAME)} sale applied automatically</strong>, plus ${DISCOUNT_PCT}% for code ${escapeHtml(appliedCode)} &mdash; ${SALE_PCT + DISCOUNT_PCT}% off, shown at the next step.`
           : `<strong>${SALE_PCT}% ${escapeHtml(SALE_NAME)} sale applied automatically</strong> &mdash; shown at the next step. Have an affiliate code? Add it there for another ${DISCOUNT_PCT}% off.`;
@@ -2572,7 +2572,7 @@ renderJumpMenu();
       return `<div class="ln"><span>${l.qty}&times; ${escapeHtml(p.name)} (${escapeHtml(p.mass)})</span><span>${fmt(p.price * l.qty)}</span></div>`;
     }).join('');
     if (subtotal() > 0 && (SALE_ACTIVE || appliedCode)) {
-      const saleLine = SALE_ACTIVE
+      const saleLine = (SALE_ACTIVE && appliedCode !== 'VETERAN')
         ? `<div class="ln"><span>${escapeHtml(SALE_NAME)} sale (${SALE_PCT}% off)</span><span>-${fmtD(saleAmt())}</span></div>`
         : '';
       const refLine = appliedCode
