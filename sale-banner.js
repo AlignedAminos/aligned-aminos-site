@@ -1,8 +1,79 @@
 /* ==========================================================================
-   Aligned Aminos — catalog enhancements
-   The sitewide sale banner that used to live here has been removed.
-   This file now only carries the catalog "Ready to Ship" badge + filter.
+   Aligned Aminos — sitewide sale banner + catalog "Ready to Ship"
+   1) Labor Day sale ticker (self-removes after the cutoff).
+   2) Catalog-only Ready-to-Ship badge + filter.
+   The CUTOFF below MUST match SALE_CUTOFF in catalog.html
+   (2026-09-07T04:00:00Z = Mon Sep 7 00:00 ET, i.e. end of Sun Sep 6).
    ========================================================================== */
+
+(function () {
+  'use strict';
+
+  var CUTOFF   = new Date('2026-09-07T04:00:00Z'); // end of Sun Sep 6, midnight ET
+  var SALE_PCT = 20;   // sitewide, automatic
+  var CODE_PCT = 10;   // extra, with an athlete code
+
+  if (new Date() >= CUTOFF) return;   // sale is over: render nothing
+
+  var TOTAL = SALE_PCT + CODE_PCT;
+
+  var SEGMENTS = [
+    '<strong>LABOR DAY SALE</strong>',
+    '<strong>' + SALE_PCT + '% OFF SITEWIDE</strong>',
+    'Applied automatically — no code needed',
+    'Stack an athlete code for ' + CODE_PCT + '% more',
+    '<strong>' + TOTAL + '% off total</strong>',
+    'Ends Sun Sep 6 · midnight ET'
+  ];
+
+  var CSS = [
+    '.aa-ticker{position:relative;z-index:11;display:block;width:100%;',
+      'background:linear-gradient(90deg,#8B2010 0%,#FF5A1F 50%,#8B2010 100%);',
+      'border-bottom:1px solid rgba(0,0,0,0.35);overflow:hidden;text-decoration:none;color:#07080A;}',
+    '.aa-ticker__track{display:flex;width:max-content;animation:aa-ticker-scroll 34s linear infinite;}',
+    '.aa-ticker:hover .aa-ticker__track{animation-play-state:paused;}',
+    '.aa-ticker__group{display:flex;flex:none;}',
+    '.aa-ticker__item{flex:none;display:inline-flex;align-items:center;padding:11px 0;',
+      'font-family:var(--font-mono,ui-monospace,Menlo,Consolas,monospace);font-size:13px;line-height:1;',
+      'letter-spacing:0.18em;text-transform:uppercase;color:#07080A;white-space:nowrap;font-weight:600;}',
+    '.aa-ticker__item strong{font-weight:800;}',
+    '.aa-ticker__sep{flex:none;display:inline-flex;align-items:center;padding:11px 22px;color:rgba(7,8,10,0.55);font-size:13px;}',
+    '@keyframes aa-ticker-scroll{from{transform:translate3d(0,0,0);}to{transform:translate3d(-50%,0,0);}}',
+    '@media (prefers-reduced-motion: reduce){.aa-ticker__track{animation:none;width:100%;justify-content:center;}.aa-ticker__group:nth-child(2){display:none;}.aa-ticker__item{white-space:normal;text-align:center;}}',
+    '@media (max-width:620px){.aa-ticker__item,.aa-ticker__sep{font-size:12px;letter-spacing:0.12em;}.aa-ticker__sep{padding-left:16px;padding-right:16px;}}'
+  ].join('');
+
+  function groupHTML() {
+    var out = '';
+    for (var i = 0; i < SEGMENTS.length; i++) {
+      out += '<span class="aa-ticker__item">' + SEGMENTS[i] + '</span>';
+      out += '<span class="aa-ticker__sep" aria-hidden="true">◆</span>';
+    }
+    return '<span class="aa-ticker__group">' + out + '</span>';
+  }
+
+  function build() {
+    if (document.querySelector('.aa-ticker')) return;
+    var style = document.createElement('style');
+    style.textContent = CSS;
+    document.head.appendChild(style);
+    var bar = document.createElement('a');
+    bar.className = 'aa-ticker';
+    bar.href = 'catalog.html';
+    bar.setAttribute('aria-label',
+      'Labor Day sale: ' + SALE_PCT + '% off sitewide, applied automatically. Stack an athlete code for ' +
+      CODE_PCT + '% more, ' + TOTAL + '% off total. Ends Sunday September 6 at midnight Eastern. Shop the catalog.');
+    var track = document.createElement('span');
+    track.className = 'aa-ticker__track';
+    track.setAttribute('aria-hidden', 'true');
+    track.innerHTML = groupHTML() + groupHTML();
+    bar.appendChild(track);
+    document.body.insertBefore(bar, document.body.firstChild);
+  }
+
+  if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', build); }
+  else { build(); }
+})();
 
 /* ==========================================================================
    Ready-to-Ship domestic badge + filter  —  CATALOG PAGE ONLY
