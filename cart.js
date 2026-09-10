@@ -214,8 +214,14 @@
   // subtotal, so 20% + 10% is a straight 30% off rather than 20% then 10%
   // of the remainder.
   const saleAmt     = () => Math.round(subtotal() * SALE_RATE * 100) / 100;
-  const referralRate = () => (appliedCode === 'VETERAN' ? 0.20 : DISCOUNT_RATE);
-  const referralPct  = () => (appliedCode === 'VETERAN' ? 20 : DISCOUNT_PCT);
+  // Show-Day Flash: code JORDAN is 20% during the window below, 10% otherwise.
+  // Not a sitewide sale — no automatic discount. All other codes stay 10%.
+  const FLASH_START = new Date('2026-09-12T23:00:00Z'); // Sun Sep 13, 6:00am ICT
+  const FLASH_END   = new Date('2026-09-14T04:00:00Z'); // Sun Sep 13, midnight ET
+  const flashOn = () => { const n = new Date(); return n >= FLASH_START && n < FLASH_END; };
+  const jordanFlash = () => (appliedCode === 'JORDAN' && flashOn());
+  const referralRate = () => (appliedCode === 'VETERAN' || jordanFlash() ? 0.20 : DISCOUNT_RATE);
+  const referralPct  = () => (appliedCode === 'VETERAN' || jordanFlash() ? 20 : DISCOUNT_PCT);
   const referralAmt = () => (appliedCode ? Math.round(subtotal() * referralRate() * 100) / 100 : 0);
   const discountAmt = () => (appliedCode === 'VETERAN' ? referralAmt() : saleAmt() + referralAmt());
   const grandTotal  = () => subtotal() - discountAmt();
@@ -745,7 +751,7 @@
       sale_name: SALE_ACTIVE ? SALE_NAME : '',
       sale_rate: SALE_RATE,
       sale_discount: saleAmt(),
-      referral_rate: referralCode ? DISCOUNT_RATE : 0,
+      referral_rate: referralCode ? referralRate() : 0,
       referral_discount: referralAmt(),
       discount: discount,
       notes: notes || ''
@@ -759,7 +765,7 @@
       ? [
           `Subtotal (free shipping): ${fmt(subtotal())}`,
           SALE_ACTIVE ? `${SALE_NAME} sale (${SALE_PCT}% off): -${fmtD(saleAmt())}` : null,
-          referralCode ? `Referral ${referralCode} (${DISCOUNT_PCT}% off): -${fmtD(referralAmt())}` : null,
+          referralCode ? `Referral ${referralCode} (${referralPct()}% off): -${fmtD(referralAmt())}` : null,
           `Order total: ${fmtD(total)}`,
         ].filter(Boolean).join('\n')
       : `Order total (free shipping): ${fmt(subtotal())}`;
