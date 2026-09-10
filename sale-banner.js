@@ -1,29 +1,25 @@
 /* ==========================================================================
-   Aligned Aminos — sitewide sale banner + catalog "Ready to Ship"
-   1) Labor Day sale ticker (self-removes after the cutoff).
+   Aligned Aminos — top banner + catalog "Ready to Ship"
+   1) Show-Day Flash banner — renders ONLY inside the flash window below.
    2) Catalog-only Ready-to-Ship badge + filter.
-   The CUTOFF below MUST match SALE_CUTOFF in catalog.html
-   (2026-09-07T04:00:00Z = Mon Sep 7 00:00 ET, i.e. end of Sun Sep 6).
+   The window MUST match the JORDAN flash window in cart.js
+   (2026-09-12T23:00:00Z = Sun Sep 13 6am ICT  ->  2026-09-14T04:00:00Z = midnight ET).
    ========================================================================== */
 
 (function () {
   'use strict';
 
-  var CUTOFF   = new Date('2026-09-07T04:00:00Z'); // end of Sun Sep 6, midnight ET
-  var SALE_PCT = 20;   // sitewide, automatic
-  var CODE_PCT = 10;   // extra, with an athlete code
-
-  if (new Date() >= CUTOFF) return;   // sale is over: render nothing
-
-  var TOTAL = SALE_PCT + CODE_PCT;
+  // Show-Day Flash window (match cart.js FLASH_START / FLASH_END).
+  var START  = new Date('2026-09-12T23:00:00Z'); // Sun Sep 13, 6:00am ICT
+  var CUTOFF = new Date('2026-09-14T04:00:00Z'); // Sun Sep 13, midnight ET
+  var now = new Date();
+  if (now < START || now >= CUTOFF) return;   // outside the window: render nothing
 
   var SEGMENTS = [
-    '<strong>LABOR DAY SALE</strong>',
-    '<strong>' + SALE_PCT + '% OFF SITEWIDE</strong>',
-    'Applied automatically — no code needed',
-    'Stack an athlete code for ' + CODE_PCT + '% more',
-    '<strong>' + TOTAL + '% off total</strong>',
-    'Ends Sun Sep 6 · midnight ET'
+    '<strong>ON STAGE &middot; SHOW-DAY FLASH</strong>',
+    "Jordan's on stage in Thailand",
+    '<strong>20% OFF WITH CODE JORDAN</strong>',
+    'Show day only &mdash; Sun Sep 13'
   ];
 
   var CSS = [
@@ -47,7 +43,7 @@
     var out = '';
     for (var i = 0; i < SEGMENTS.length; i++) {
       out += '<span class="aa-ticker__item">' + SEGMENTS[i] + '</span>';
-      out += '<span class="aa-ticker__sep" aria-hidden="true">◆</span>';
+      out += '<span class="aa-ticker__sep" aria-hidden="true">&#9670;</span>';
     }
     return '<span class="aa-ticker__group">' + out + '</span>';
   }
@@ -61,8 +57,7 @@
     bar.className = 'aa-ticker';
     bar.href = 'catalog.html';
     bar.setAttribute('aria-label',
-      'Labor Day sale: ' + SALE_PCT + '% off sitewide, applied automatically. Stack an athlete code for ' +
-      CODE_PCT + '% more, ' + TOTAL + '% off total. Ends Sunday September 6 at midnight Eastern. Shop the catalog.');
+      "Show-Day Flash supporting Jordan's bodybuilding show: 20% off with code JORDAN. Show day only, Sunday September 13. Shop the catalog.");
     var track = document.createElement('span');
     track.className = 'aa-ticker__track';
     track.setAttribute('aria-hidden', 'true');
