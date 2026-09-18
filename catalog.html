@@ -467,6 +467,78 @@ select.pc-size option { background: var(--bg-3); color: var(--text-1); }
   border-color: var(--border-strong);
 }
 .pc-btn--ghost:hover { border-color: var(--color-ember); color: var(--color-ember); }
+
+/* ═══ US warehouse availability ═══════════════════════════════════════════
+   Driven by `us: true` on variants in PRODUCTS. renderCard() sets
+   .is-domestic (some size in the US warehouse) or .is-unavailable (none).
+   ───────────────────────────────────────────────────────────────────────── */
+.pc-stock {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 3px 9px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: 1;
+  white-space: nowrap;
+  border-radius: 999px;
+  align-self: flex-start;   /* hug the label, don't stretch to card width */
+  max-width: 100%;
+}
+.pc-stock--rts {
+  color: #dcefe1;
+  background: rgba(38,122,68,0.16);
+  border: 1px solid rgba(66,176,106,0.5);
+}
+.pc-stock--oos {
+  color: var(--text-muted, #9a978f);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border-default);
+}
+.pc-stock svg { display: block; border-radius: 1px; }
+
+.pc-ship {
+  margin: 10px 0 0;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.6;
+  letter-spacing: 0.06em;
+  color: var(--text-2);
+}
+.pc-ship b { color: #8fd6a8; font-weight: 600; }
+.pc-ship span { display: block; color: var(--text-muted, #9a978f); }
+
+.pc-othersizes {
+  margin: 10px 0 0;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.6;
+  color: var(--text-muted, #9a978f);
+}
+.pc-othersizes button {
+  padding: 0;
+  font: inherit;
+  color: var(--color-ember);
+  background: none;
+  border: 0;
+  border-bottom: 1px solid rgba(255,90,31,0.4);
+  cursor: pointer;
+}
+.pc-othersizes button:hover { color: var(--color-ember-gold, #ffb347); }
+
+.product-card.is-unavailable .product-card__media { opacity: 0.42; filter: saturate(0.35); }
+.product-card.is-unavailable .product-card__title,
+.product-card.is-unavailable .price__amount { color: var(--text-2); }
+.pc-btn--contact {
+  background: transparent;
+  color: var(--color-ember);
+  border-color: rgba(255,90,31,0.45);
+}
+.pc-btn--contact:hover { background: var(--ember-muted); border-color: var(--color-ember); }
 .pc-btn--primary {
   background: var(--color-ember);
   color: var(--text-inv);
@@ -544,7 +616,11 @@ select.pc-size option { background: var(--bg-3); color: var(--text-1); }
   text-transform: uppercase;
   color: var(--color-ember);
   text-align: right;
-  white-space: nowrap;
+  line-height: 1.8;
+  /* Wraps rather than forcing page-width overflow on narrow screens — the
+     availability copy here is longer than the old single "2-4 weeks" line. */
+  white-space: normal;
+  text-wrap: balance;
 }
 @media (max-width: 640px) {
   .catalog__meta {
@@ -1187,7 +1263,7 @@ select.pc-size option { background: var(--bg-3); color: var(--text-1); }
         Per-batch certificate of analysis available on request.
         All compounds shipped as lyophilized powder, sealed under nitrogen.
       </p>
-      <p class="catalog__delivery">Allow 2&ndash;4 weeks for delivery</p>
+      <p class="catalog__delivery">Ready to ship &middot; 1&ndash;2 weeks North America &mdash; allow 2&ndash;4 weeks elsewhere</p>
     </div>
 
     <div class="catalog-cta">
@@ -1285,7 +1361,8 @@ select.pc-size option { background: var(--bg-3); color: var(--text-1); }
       <p class="cart-foot__note" id="cart-sale-note" hidden></p>
       <p class="cart-foot__note">
         Subtotal excludes shipping. No payment is taken here &mdash; we email you to confirm
-        stock, add shipping, and arrange payment. Allow 2&ndash;4 weeks for delivery.
+        stock, add shipping, and arrange payment. Ready-to-ship items reach North America in
+        1&ndash;2 weeks; allow 2&ndash;4 weeks for everywhere else.
       </p>
       <button type="button" class="cart-btn cart-btn--primary" id="cart-continue" disabled>
         Continue to order details &rarr;
@@ -1624,26 +1701,26 @@ const PRODUCTS = [
 
   // ─── Metabolic & GLP-1 ───────────────────────────────────────────────
   { cat: 'metabolic', name: 'Tirzepatide',     slug: 'tirzepatide',              sub: 'GIP / GLP-1 dual agonist',          variants: [
-    { mass: '10 mg', price: 225 }, { mass: '15 mg', price: 265 },
-    { mass: '20 mg', price: 355 }, { mass: '30 mg', price: 530 }, { mass: '40 mg', price: 620 },
-    { mass: '50 mg', price: 840 }, { mass: '60 mg', price: 970 }, { mass: '100 mg', price: 1630 },
+    { mass: '10 mg', price: 225 }, { mass: '15 mg', price: 265 , us: true },
+    { mass: '20 mg', price: 355 }, { mass: '30 mg', price: 530 , us: true }, { mass: '40 mg', price: 620 , us: true },
+    { mass: '50 mg', price: 840 , us: true }, { mass: '60 mg', price: 970 , us: true }, { mass: '100 mg', price: 1630 },
     { mass: '120 mg', vials: 11, price: 2025 } ] },
   { cat: 'metabolic', name: 'Retatrutide',     slug: 'retatrutide',              sub: 'GLP-1 / GIP / Glucagon triple agonist', variants: [
-    { mass: '10 mg', price: 355 },
-    { mass: '20 mg', price: 620 }, { mass: '30 mg', price: 925 }, { mass: '40 mg', price: 1235 },
-    { mass: '50 mg', price: 1500 }, { mass: '60 mg', vials: 11, price: 1720 } ] },
+    { mass: '10 mg', price: 355 , us: true },
+    { mass: '20 mg', price: 620 , us: true }, { mass: '30 mg', price: 925 , us: true }, { mass: '40 mg', price: 1235 },
+    { mass: '50 mg', price: 1500 , us: true }, { mass: '60 mg', vials: 11, price: 1720 , us: true } ] },
   { cat: 'metabolic', name: 'MOTS-c',          slug: 'mots-c',                   sub: 'Mitochondrial-derived peptide',     variants: [
-    { mass: '10 mg', price: 330 }, { mass: '40 mg', price: 1320 } ] },
+    { mass: '10 mg', price: 330 , us: true }, { mass: '40 mg', price: 1320 , us: true } ] },
   { cat: 'metabolic', name: 'AOD-9604',        slug: 'aod-9604',                 sub: 'GH fragment 176-191',               variants: [
     { mass: '5 mg', price: 575 }, { mass: '10 mg', price: 1145 } ] },
   { cat: 'metabolic', name: '5-Amino-1MQ',     slug: '5-amino-1mq',              sub: 'Selective NNMT inhibitor',          variants: [
-    { mass: '5 mg', price: 180 }, { mass: '10 mg', price: 225 }, { mass: '50 mg', price: 460 } ] },
+    { mass: '5 mg', price: 180 }, { mass: '10 mg', price: 225 }, { mass: '50 mg', price: 460 , us: true } ] },
   { cat: 'metabolic', name: 'Semaglutide',     slug: 'semaglutide',              sub: 'GLP-1 receptor agonist',            variants: [
     { mass: '10 mg', price: 200 }, { mass: '20 mg', price: 330 }, { mass: '30 mg', price: 445 } ] },
   { cat: 'metabolic', name: 'Liraglutide',     slug: 'liraglutide',              sub: 'GLP-1 receptor agonist',            variants: [
     { mass: '5 mg', price: 420 }, { mass: '10 mg', price: 705 }, { mass: '30 mg', price: 1765 } ] },
   { cat: 'metabolic', name: 'Cagrilintide',    slug: 'cagrilintide',             sub: 'Long-acting amylin analog',         variants: [
-    { mass: '5 mg', price: 445 }, { mass: '10 mg', price: 795 }, { mass: '20 mg', price: 1545 } ] },
+    { mass: '5 mg', price: 445 , us: true }, { mass: '10 mg', price: 795 , us: true }, { mass: '20 mg', price: 1545 } ] },
   { cat: 'metabolic', name: 'CagriSema',       slug: 'cagrisema',                sub: 'Cagrilintide + semaglutide blend',  variants: [
     { mass: '10 mg', price: 620 } ] },
   { cat: 'metabolic', name: 'Mazdutide',       slug: 'mazdutide',                sub: 'GLP-1 / glucagon dual agonist',     variants: [
@@ -1651,37 +1728,37 @@ const PRODUCTS = [
   { cat: 'metabolic', name: 'Survodutide',     slug: 'survodutide',              sub: 'GLP-1 / glucagon dual agonist',     variants: [
     { mass: '10 mg', price: 1500 } ] },
   { cat: 'recovery',  name: 'BPC-157',         slug: 'bpc-157',                  sub: 'Body Protection Compound',          variants: [
-    { mass: '5 mg', price: 180 }, { mass: '10 mg', price: 275 }, { mass: '20 mg', price: 530 } ] },
+    { mass: '5 mg', price: 180 , us: true }, { mass: '10 mg', price: 275 , us: true }, { mass: '20 mg', price: 530 , us: true } ] },
   { cat: 'recovery',  name: 'TB-500',          slug: 'tb-500',                   sub: 'Thymosin Beta-4 (full-length)',     variants: [
-    { mass: '5 mg', price: 445 }, { mass: '10 mg', price: 840 }, { mass: '20 mg', price: 1630 } ] },
+    { mass: '5 mg', price: 445 , us: true }, { mass: '10 mg', price: 840 , us: true }, { mass: '20 mg', price: 1630 } ] },
   { cat: 'recovery',  name: 'KPV',             slug: 'kpv',                      sub: 'Lysine-Proline-Valine tripeptide',  variants: [
-    { mass: '5 mg', price: 225 }, { mass: '10 mg', price: 310 } ] },
+    { mass: '5 mg', price: 225 , us: true }, { mass: '10 mg', price: 310 , us: true } ] },
   { cat: 'recovery',  name: 'BPC-157 + TB-500',slug: 'bpc-157-tb-500-blend',     sub: 'Recovery stack blend',              variants: [
-    { mass: '10 mg', price: 485 }, { mass: '20 mg', price: 970 } ] },
+    { mass: '10 mg', price: 485 , us: true }, { mass: '20 mg', price: 970 , us: true } ] },
   { cat: 'recovery',  name: 'TB-500 FRAG',    slug: 'tb-500-frag',              sub: 'Thymosin Beta-4 active fragment',   variants: [
     { mass: '10 mg', price: 420 } ] },
   { cat: 'recovery',  name: 'GLOW',            slug: 'glow',                     sub: 'BPC-157 + GHK-Cu + TB-500',         variants: [
-    { mass: '70 mg', price: 1015 } ] },
+    { mass: '70 mg', price: 1015 , us: true } ] },
   { cat: 'recovery',  name: 'KLOW',            slug: 'klow',                     sub: 'GLOW + KPV',                        variants: [
-    { mass: '80 mg', price: 1100 } ] },
+    { mass: '80 mg', price: 1100 , us: true } ] },
   { cat: 'gh-axis',   name: 'IGF-1 LR3',       slug: 'igf-1-lr3',                sub: 'Long arginine-3 IGF-1 analog',      variants: [
-    { mass: '0.1 mg', price: 225 }, { mass: '1 mg', price: 1100 } ] },
+    { mass: '0.1 mg', price: 225 , us: true }, { mass: '1 mg', price: 1100 , us: true } ] },
   { cat: 'gh-axis',   name: 'Ipamorelin',      slug: 'ipamorelin',               sub: 'Selective GH secretagogue',         variants: [
-    { mass: '5 mg', price: 225 }, { mass: '10 mg', price: 360 } ] },
+    { mass: '5 mg', price: 225 , us: true }, { mass: '10 mg', price: 360 } ] },
   { cat: 'gh-axis',   name: 'CJC-1295 + IPA',  slug: 'cjc-1295-ipamorelin-blend',sub: 'GHRH analog + ghrelin mimetic',     variants: [
-    { mass: '10 mg', price: 510 }, { mass: '20 mg', price: 1015 } ] },
+    { mass: '10 mg', price: 510 , us: true }, { mass: '20 mg', price: 1015 } ] },
   { cat: 'gh-axis',   name: 'Tesamorelin',     slug: 'tesamorelin',              sub: 'GHRH analog',                       variants: [
-    { mass: '5 mg', price: 575 }, { mass: '10 mg', price: 1060 }, { mass: '20 mg', price: 2025 } ] },
+    { mass: '5 mg', price: 575 , us: true }, { mass: '10 mg', price: 1060 , us: true }, { mass: '20 mg', price: 2025 } ] },
   { cat: 'gh-axis',   name: 'Sermorelin',      slug: 'sermorelin',               sub: 'GHRH (1-29) analog',                variants: [
     { mass: '5 mg', price: 420 }, { mass: '10 mg', price: 795 } ] },
   { cat: 'gh-axis',   name: 'HCG',             slug: 'hcg',                      sub: 'Human Chorionic Gonadotropin',      variants: [
-    { mass: '5,000 IU', price: 465 }, { mass: '10,000 IU', price: 925 } ] },
+    { mass: '5,000 IU', price: 465 , us: true }, { mass: '10,000 IU', price: 925 , us: true } ] },
   { cat: 'gh-axis',   name: 'CJC-1295 (no DAC)', slug: 'cjc-1295-no-dac',        sub: 'Modified GRF (1-29)',               variants: [
     { mass: '5 mg', price: 420 }, { mass: '10 mg', vials: 11, price: 750 } ] },
   { cat: 'gh-axis',   name: 'CJC-1295 (DAC)',  slug: 'cjc-1295-dac',             sub: 'GHRH analog with DAC',              variants: [
-    { mass: '5 mg', price: 1015 }, { mass: '10 mg', vials: 11, price: 1850 } ] },
+    { mass: '5 mg', price: 1015 , us: true }, { mass: '10 mg', vials: 11, price: 1850 } ] },
   { cat: 'gh-axis',   name: 'Tesamorelin + IPA', slug: 'tesamorelin-ipamorelin-blend', sub: 'GHRH analog + ghrelin mimetic', variants: [
-    { mass: '18 mg', price: 1365 } ] },
+    { mass: '18 mg', price: 1365 , us: true } ] },
   { cat: 'gh-axis',   name: 'GHRP-6',          slug: 'ghrp-6',                   sub: 'GH-releasing peptide-6',            variants: [
     { mass: '5 mg', price: 155 }, { mass: '10 mg', price: 310 } ] },
   { cat: 'gh-axis',   name: 'Hexarelin',       slug: 'hexarelin',                sub: 'GH secretagogue (GHRP class)',      variants: [
@@ -1695,33 +1772,33 @@ const PRODUCTS = [
 
   // ─── Longevity & Anti-Aging ──────────────────────────────────────────
   { cat: 'longevity', name: 'GHK-Cu',          slug: 'ghk-cu',                   sub: 'Copper tripeptide-1',               variants: [
-    { mass: '50 mg', price: 155 }, { mass: '100 mg', price: 225 } ] },
+    { mass: '50 mg', price: 155 , us: true }, { mass: '100 mg', price: 225 , us: true } ] },
   { cat: 'longevity', name: 'SNAP-8',          slug: 'snap-8',                   sub: 'Topical octapeptide',               variants: [
     { mass: '10 mg', price: 200 } ] },
   { cat: 'longevity', name: 'Epithalon',       slug: 'epithalon',                sub: 'Telomerase-active tetrapeptide',    variants: [
-    { mass: '10 mg', price: 245 }, { mass: '50 mg', price: 905 } ] },
+    { mass: '10 mg', price: 245 , us: true }, { mass: '50 mg', price: 905 , us: true } ] },
   { cat: 'longevity', name: 'Pinealon',        slug: 'pinealon',                 sub: 'Pineal tripeptide bioregulator',    variants: [
     { mass: '5 mg', price: 225 }, { mass: '10 mg', price: 355 }, { mass: '20 mg', price: 620 } ] },
   { cat: 'longevity', name: 'SS-31',           slug: 'ss-31',                    sub: 'Elamipretide, mitochondrial-targeted', variants: [
-    { mass: '10 mg', price: 385 }, { mass: '50 mg', price: 1765 } ] },
+    { mass: '10 mg', price: 385 }, { mass: '50 mg', price: 1765 , us: true } ] },
   { cat: 'longevity', name: 'GHK basic',       slug: 'ghk-basic',                sub: 'Glycyl-histidyl-lysine tripeptide', variants: [
     { mass: '50 mg', price: 180 } ] },
   { cat: 'longevity', name: 'AHK-Cu',          slug: 'ahk-cu',                   sub: 'Copper tripeptide (AHK-Cu)',        variants: [
     { mass: '100 mg', price: 330 } ] },
   { cat: 'longevity', name: 'NAD+',            slug: 'nad-plus',                 sub: 'Nicotinamide adenine dinucleotide', variants: [
-    { mass: '500 mg', price: 355 }, { mass: '1000 mg', price: 530 } ] },
+    { mass: '500 mg', price: 355 , us: true }, { mass: '1000 mg', price: 530 , us: true } ] },
   { cat: 'longevity', name: 'Testagen',        slug: 'testagen',                 sub: 'Peptide bioregulator',              variants: [
     { mass: '20 mg', price: 575 } ] },
   { cat: 'longevity', name: 'Thymalin',        slug: 'thymalin',                 sub: 'Thymic peptide preparation',        variants: [
-    { mass: '10 mg', price: 375 } ] },
+    { mass: '10 mg', price: 375 , us: true } ] },
   { cat: 'longevity', name: 'N-Acetyl Epitalon Amidate', slug: 'n-acetyl-epitalon-amidate', sub: 'Modified epitalon tetrapeptide', variants: [
     { mass: '5 mg', price: 310 } ] },
 
   // ─── Cognition & Mood ────────────────────────────────────────────────
   { cat: 'cognition', name: 'Semax',           slug: 'semax',                    sub: 'Heptapeptide nootropic',            variants: [
-    { mass: '5 mg', price: 200 }, { mass: '10 mg', price: 290 } ] },
+    { mass: '5 mg', price: 200 }, { mass: '10 mg', price: 290 , us: true } ] },
   { cat: 'cognition', name: 'Selank',          slug: 'selank',                   sub: 'Synthetic anxiolytic peptide',      variants: [
-    { mass: '5 mg', price: 200 }, { mass: '10 mg', price: 310 } ] },
+    { mass: '5 mg', price: 200 }, { mass: '10 mg', price: 310 , us: true } ] },
   { cat: 'cognition', name: 'DSIP',            slug: 'dsip',                     sub: 'Delta-sleep-inducing peptide',      variants: [
     { mass: '5 mg', price: 225 }, { mass: '10 mg', price: 330 }, { mass: '15 mg', price: 445 } ] },
   { cat: 'cognition', name: 'Semax + Selank',  slug: 'semax-selank-blend',       sub: 'Semax + Selank nootropic blend',    variants: [
@@ -1739,7 +1816,7 @@ const PRODUCTS = [
 
   // ─── Hormones, Sexual Health & Misc ──────────────────────────────────
   { cat: 'misc',      name: 'Thymosin Alpha-1',slug: 'thymosin-alpha-1',         sub: 'Synthetic immune-modulating peptide', variants: [
-    { mass: '5 mg', price: 530 }, { mass: '10 mg', price: 1015 } ] },
+    { mass: '5 mg', price: 530 }, { mass: '10 mg', price: 1015 , us: true } ] },
   { cat: 'misc',      name: 'VIP',             slug: 'vip',                      sub: 'Vasoactive intestinal peptide',     variants: [
     { mass: '5 mg', price: 445 }, { mass: '10 mg', price: 840 } ] },
   { cat: 'misc',      name: 'PNC-27',          slug: 'pnc-27',                   sub: 'p53-derived chimeric peptide',      variants: [
@@ -1749,11 +1826,11 @@ const PRODUCTS = [
   { cat: 'misc',      name: 'PT-141',          slug: 'pt-141',                   sub: 'Bremelanotide, melanocortin agonist',variants: [
     { mass: '10 mg', price: 330 } ] },
   { cat: 'misc',      name: 'Melanotan-II',    slug: 'melanotan-ii',             sub: 'Synthetic alpha-MSH analog',        variants: [
-    { mass: '10 mg', price: 290 } ] },
+    { mass: '10 mg', price: 290 , us: true } ] },
   { cat: 'misc',      name: 'B12',             slug: 'b12-methylcobalamin',      sub: 'Methylcobalamin',                   variants: [
     { mass: '10 ml', price: 205 } ] },
   { cat: 'misc',      name: 'KissPeptin-10',   slug: 'kisspeptin-10',            sub: 'Kisspeptin-derived decapeptide',    variants: [
-    { mass: '5 mg', price: 265 }, { mass: '10 mg', price: 485 } ] },
+    { mass: '5 mg', price: 265 }, { mass: '10 mg', price: 485 , us: true } ] },
   { cat: 'misc',      name: 'Melanotan-1',     slug: 'melanotan-1',              sub: 'Afamelanotide, alpha-MSH analog',   variants: [
     { mass: '5 mg', price: 290 } ] },
 
@@ -1769,7 +1846,7 @@ const PRODUCTS = [
 
   // ─── Accessories ─────────────────────────────────────────────────────
   { cat: 'accessory', name: 'BAC Water',       slug: 'bac-water',                sub: 'Bacteriostatic water for reconstitution', needsCompanion: true, variants: [
-    { mass: '3 ml', price: 20 }, { mass: '10 ml', vials: 11, price: 25 } ] },
+    { mass: '3 ml', price: 20 , us: true }, { mass: '10 ml', vials: 11, price: 25 , us: true } ] },
 ];
 
 /* ═════════════════════════════════════════════════════════════════════════
@@ -1782,9 +1859,30 @@ function escapeHtml(s) {
     .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
+/* US flag mark used by the Ready-to-Ship badge (matches sale-banner.js). */
+const US_FLAG = '<svg width="18" height="12" viewBox="0 0 18 12" aria-hidden="true">'
+  + '<rect width="18" height="12" fill="#b22234"/>'
+  + '<rect y="1.85" width="18" height="1.85" fill="#fff"/>'
+  + '<rect y="5.54" width="18" height="1.85" fill="#fff"/>'
+  + '<rect y="9.23" width="18" height="1.85" fill="#fff"/>'
+  + '<rect width="8" height="6.46" fill="#3c3b6e"/></svg>';
+
+/* ─────────────────────────────────────────────────────────────────────────
+   AVAILABILITY
+   A variant carrying `us: true` is sitting in the US warehouse.
+   • Any stocked size  -> card is live, and the size picker lists ONLY the
+     stocked sizes. Ready-to-Ship badge + 1-2 week North America transit.
+   • No stocked size   -> card renders unavailable: prices stay visible and
+     the size picker still works, but "Add to order" becomes "Contact us",
+     which prefills the contact form further down the page.
+   Nothing here touches price. To restock, add/remove `us: true` above.
+   ───────────────────────────────────────────────────────────────────────── */
 function renderCard(p) {
-  const variants  = p.variants;
-  const def       = variants[0];                 // first size is the default selection
+  const stocked   = p.variants.filter(v => v.us && !v.oos);
+  const inStock   = stocked.length > 0;
+  const variants  = inStock ? stocked : p.variants;   // live cards show stocked sizes only
+  const hiddenCt  = inStock ? p.variants.length - stocked.length : 0;
+  const def       = variants[0];
   const defVials  = def.vials || 10;
   const priceFmt  = def.price.toLocaleString('en-US');
   const hasChoice = variants.length > 1;
@@ -1797,8 +1895,34 @@ function renderCard(p) {
       }</select>`
     : `<span>${escapeHtml(def.mass)}</span>`;
 
+  const stockBadge = inStock
+    ? `<span class="pc-stock pc-stock--rts">${US_FLAG}<span>Ready to ship</span></span>`
+    : `<span class="pc-stock pc-stock--oos">Currently unavailable</span>`;
+
+  const shipNote = inStock
+    ? `<p class="pc-ship"><b>In the US warehouse &mdash; ships in 1&ndash;2 weeks</b>
+         <span>North America only. Allow 2&ndash;4 weeks elsewhere.</span></p>`
+    : `<p class="pc-ship"><span>Not held in the US warehouse. Get in touch and we&rsquo;ll
+         quote it on the next production run.</span></p>`;
+
+  const otherSizes = hiddenCt > 0
+    ? `<p class="pc-othersizes">Other sizes made to order &mdash;
+         <button type="button" class="pc-ask" data-name="${escapeHtml(p.name)}">ask about sizes</button></p>`
+    : '';
+
+  const action = inStock
+    ? `<button type="button" class="pc-btn pc-btn--primary cart-add"
+        data-key="${escapeHtml(p.slug + '|' + def.mass)}"
+        data-name="${escapeHtml(p.name)}"
+        data-mass="${escapeHtml(def.mass)}"
+        data-vials="${defVials}"
+        data-price="${def.price}">Add to order</button>`
+    : `<button type="button" class="pc-btn pc-btn--contact pc-ask"
+        data-name="${escapeHtml(p.name)}"
+        data-mass="${escapeHtml(def.mass)}">Contact us</button>`;
+
   return `
-    <article class="product-card">
+    <article class="product-card ${inStock ? 'is-domestic' : 'is-unavailable'}">
       <div class="product-card__media">
         <img src="img/vials/${escapeHtml(p.slug)}.jpg" alt="${escapeHtml(p.name)} research vial" loading="lazy"
           onerror="this.closest('.product-card__media').style.display='none'">
@@ -1808,12 +1932,15 @@ function renderCard(p) {
       </header>
       <div class="product-card__body">
         <h3 class="product-card__title">${escapeHtml(p.name)}</h3>
+        ${stockBadge}
         <p class="product-card__subtitle">${escapeHtml(p.sub)}</p>
         <dl class="product-card__specs">
           <div><dt>Per vial</dt><dd>${sizeControl}</dd></div>
           <div><dt>Box</dt><dd class="pc-vials">${defVials} vials</dd></div>
         </dl>
-        ${p.needsCompanion ? `<p class="pc-companion">Must be added with other products. ${escapeHtml(p.name)} does not ship on its own \u2014 put anything else in your cart and it goes along with it.</p>` : ''}
+        ${shipNote}
+        ${otherSizes}
+        ${p.needsCompanion ? `<p class="pc-companion">Must be added with other products. ${escapeHtml(p.name)} does not ship on its own — put anything else in your cart and it goes along with it.</p>` : ''}
       </div>
       <footer class="product-card__footer">
         <div class="product-card__price">
@@ -1822,12 +1949,7 @@ function renderCard(p) {
         </div>
         <div class="product-card__actions">
           ${p.noSheet ? '' : `<a class="pc-btn pc-btn--ghost" href="datasheets/${escapeHtml(p.slug)}.pdf" target="_blank" rel="noopener">Data sheet</a>`}
-          <button type="button" class="pc-btn pc-btn--primary cart-add"
-            data-key="${escapeHtml(p.slug + '|' + def.mass)}"
-            data-name="${escapeHtml(p.name)}"
-            data-mass="${escapeHtml(def.mass)}"
-            data-vials="${defVials}"
-            data-price="${def.price}">Add to order</button>
+          ${action}
         </div>
       </footer>
     </article>
@@ -1898,10 +2020,55 @@ renderJumpMenu();
     const vEl = card.querySelector('.pc-vials');
     if (vEl) vEl.textContent = vials + ' vials';
     const btn = card.querySelector('.cart-add');
-    btn.dataset.key   = sel.value;
-    btn.dataset.mass  = opt.dataset.mass;
-    btn.dataset.vials = vials;
-    btn.dataset.price = String(price);
+    if (btn) {
+      btn.dataset.key   = sel.value;
+      btn.dataset.mass  = opt.dataset.mass;
+      btn.dataset.vials = vials;
+      btn.dataset.price = String(price);
+    }
+    // Unavailable cards have a Contact-us button instead; keep its size in sync
+    // so the prefilled enquiry names the size the visitor was actually looking at.
+    const ask = card.querySelector('.pc-btn--contact.pc-ask');
+    if (ask) ask.dataset.mass = opt.dataset.mass;
+  });
+})();
+
+/* ═════════════════════════════════════════════════════════════════════════
+   CONTACT-US SHORTCUT  —  "Contact us" on an unavailable card, and the
+   "ask about sizes" link on a card whose larger sizes aren't in the US
+   warehouse. Both jump to the contact form and prefill the message so the
+   lead arrives already saying which product it's about.
+   ═════════════════════════════════════════════════════════════════════════ */
+(() => {
+  const root = document.getElementById('catalog-root');
+  if (!root) return;
+
+  root.addEventListener('click', (e) => {
+    const ask = e.target.closest('.pc-ask');
+    if (!ask) return;
+
+    const name = ask.dataset.name || '';
+    const mass = ask.dataset.mass || '';
+    const sizes = ask.classList.contains('pc-btn--contact')
+      ? (mass ? `I'm interested in ${name} (${mass}).` : `I'm interested in ${name}.`)
+      : `I'm interested in ${name} in a size that isn't listed as ready to ship.`;
+
+    const msg = document.getElementById('cf-message');
+    if (msg) {
+      const line = `${sizes} Could you let me know availability and timing?`;
+      msg.value = msg.value.trim() ? `${msg.value.trim()}\n\n${line}` : line;
+    }
+
+    const section = document.getElementById('contact');
+    if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Focus the first empty field so they can start typing straight away.
+    setTimeout(() => {
+      const first = ['cf-name', 'cf-email'].map((id) => document.getElementById(id))
+        .find((el) => el && !el.value.trim());
+      if (first) first.focus({ preventScroll: true });
+      else if (msg) msg.focus({ preventScroll: true });
+    }, 550);
   });
 })();
 
