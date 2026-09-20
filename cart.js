@@ -60,6 +60,7 @@
     'HAYLEY': 'Hayley McIntosh',
     'ALIGNED': 'Aligned Strength site (brand code)',
     'MORTEN': 'Morten',
+    'RANDY': 'Randy',
   };
   // Legacy aliases — the old NAME10 codes are already printed, posted and
   // shared, so they still redeem and resolve to the new short name. Delete an
