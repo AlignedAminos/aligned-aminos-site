@@ -100,7 +100,7 @@
   const CODES = {
     // Metabolic & GLP-1
     'tirzepatide|10 mg':'TR10','tirzepatide|15 mg':'TR15','tirzepatide|20 mg':'TR20','tirzepatide|30 mg':'TR30','tirzepatide|40 mg':'TR40','tirzepatide|50 mg':'TR50','tirzepatide|60 mg':'TR60','tirzepatide|100 mg':'TR100','tirzepatide|120 mg':'TR120',
-    'retatrutide|10 mg':'RT10','retatrutide|20 mg':'RT20','retatrutide|30 mg':'RT30','retatrutide|40 mg':'RT40','retatrutide|50 mg':'RT50','retatrutide|60 mg':'RT60',
+    'retatrutide|10 mg':'RT10','retatrutide|15 mg':'RT15','retatrutide|20 mg':'RT20','retatrutide|30 mg':'RT30','retatrutide|40 mg':'RT40','retatrutide|50 mg':'RT50','retatrutide|60 mg':'RT60',
     'mots-c|10 mg':'MS10','mots-c|40 mg':'MS40',
     'aod-9604|5 mg':'5AD','aod-9604|10 mg':'10AD',
     '5-amino-1mq|5 mg':'5:00 AM','5-amino-1mq|10 mg':'10:00 AM','5-amino-1mq|50 mg':'50AM',
