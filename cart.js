@@ -27,17 +27,25 @@
   // Note: anything here is visible in the page source, so codes aren't secret.
   //
   // SITEWIDE SALE — automatic, no code needed.
-  // Sitewide discount, applied on its own. Runs through the
-  // end of Aug 19, 2026 Eastern. The cutoff is a fixed UTC instant (Aug 19
-  // midnight ET = EDT, UTC-4 = 08-20 04:00Z) so it lands correctly no matter
-  // what timezone the visitor is in. After the cutoff SALE_RATE drops to 0,
-  // the sale row disappears and referral codes go back to being the only
-  // discount — no second deploy needed.
-  // TO END THE SALE EARLY: set SALE_RATE to 0. TO EXTEND IT: move SALE_CUTOFF.
-  const SALE_NAME    = 'Labor Day';
-  const SALE_CUTOFF  = new Date('2026-09-07T04:00:00Z');
+  // COLUMBUS DAY BOGO: buy one, get one of equal or lesser value 40% off.
+  // Every box in the cart is sorted by price (high → low) and paired; the
+  // cheaper box of each pair is the discounted one. An athlete/referral code
+  // adds +10% to those discounted boxes only (40 → 50%); the full-price box
+  // in each pair stays full price. An unpaired leftover box gets the normal
+  // code 10%. VETERAN (flat 20%) never stacks — the cart gives whichever is
+  // bigger, VETERAN's 20% of the order or the BOGO.
+  // Runs through end of Tue Oct 13, 2026 Eastern (midnight ET = EDT, UTC-4
+  // = 10-14 04:00Z). Self-disables after the cutoff — no second deploy.
+  // MUST MATCH CUTOFF in sale-banner.js.
+  // TO END THE SALE EARLY: move SALE_CUTOFF into the past (both files).
+  const SALE_NAME    = 'Columbus Day';
+  const SALE_CUTOFF  = new Date('2026-10-14T04:00:00Z');
   const SALE_ACTIVE  = new Date() < SALE_CUTOFF;
-  const SALE_RATE    = SALE_ACTIVE ? 0.20 : 0;
+  const BOGO_RATE    = 0.40;  // 2nd box off
+  const BOGO_CODE    = 0.10;  // extra on the 2nd box with a code (→ 50%)
+  const BOGO_PCT     = Math.round(BOGO_RATE * 100);
+  const BOGO_MAX_PCT = Math.round((BOGO_RATE + BOGO_CODE) * 100);
+  const SALE_RATE    = SALE_ACTIVE ? BOGO_RATE : 0;
   const SALE_PCT     = Math.round(SALE_RATE * 100);
 
   // REFERRAL CODES — 10%, and they STACK on top of the sitewide sale, so a
@@ -214,7 +222,26 @@
   // Sale and referral are additive: both percentages come off the same
   // subtotal, so 20% + 10% is a straight 30% off rather than 20% then 10%
   // of the remainder.
-  const saleAmt     = () => Math.round(subtotal() * SALE_RATE * 100) / 100;
+  const r2   = (n) => Math.round(n * 100) / 100;
+  const sumA = (a) => a.reduce((s, x) => s + x, 0);
+  // BOGO pairing: every box as one unit price, high → low, paired in order.
+  // disc = the cheaper box of each pair; left = an unpaired final box.
+  function bogoSplit() {
+    const u = [];
+    cart.forEach(l => { const p = BY_KEY[l.key].price; for (let i = 0; i < l.qty; i++) u.push(p); });
+    u.sort((a, b) => b - a);
+    const disc = [], left = [];
+    for (let i = 0; i < u.length; i += 2) {
+      if (i + 1 < u.length) disc.push(u[i + 1]); else left.push(u[i]);
+    }
+    return { disc, left };
+  }
+  const bogoAmt  = () => r2(sumA(bogoSplit().disc) * BOGO_RATE);
+  const bogoPairs = () => bogoSplit().disc.length;
+  // VETERAN during the sale: whichever is bigger wins, never both.
+  const vetAmt   = () => r2(subtotal() * 0.20);
+  const vetWins  = () => (appliedCode === 'VETERAN' && vetAmt() >= bogoAmt());
+  const saleAmt  = () => (SALE_ACTIVE && !vetWins() ? bogoAmt() : 0);
   // Show-Day Flash: code JORDAN is 20% during the window below, 10% otherwise.
   // Not a sitewide sale — no automatic discount. All other codes stay 10%.
   const FLASH_START = new Date('2026-09-12T23:00:00Z'); // Sun Sep 13, 6:00am ICT
@@ -223,8 +250,18 @@
   const jordanFlash = () => (appliedCode === 'JORDAN' && flashOn());
   const referralRate = () => (appliedCode === 'VETERAN' || jordanFlash() ? 0.20 : DISCOUNT_RATE);
   const referralPct  = () => (appliedCode === 'VETERAN' || jordanFlash() ? 20 : DISCOUNT_PCT);
-  const referralAmt = () => (appliedCode ? Math.round(subtotal() * referralRate() * 100) / 100 : 0);
-  const discountAmt = () => (appliedCode === 'VETERAN' ? referralAmt() : saleAmt() + referralAmt());
+  function referralAmt() {
+    if (!appliedCode) return 0;
+    if (appliedCode === 'VETERAN') return (!SALE_ACTIVE || vetWins()) ? vetAmt() : 0;
+    if (SALE_ACTIVE) { const s = bogoSplit(); return r2((sumA(s.disc) + sumA(s.left)) * BOGO_CODE); }
+    return r2(subtotal() * referralRate());
+  }
+  // Label for the referral line, everywhere it's printed.
+  const referralLabel = () => (SALE_ACTIVE && appliedCode !== 'VETERAN'
+    ? `Referral ${appliedCode} (+${Math.round(BOGO_CODE * 100)}% on BOGO boxes)`
+    : `Referral ${appliedCode} (${referralPct()}% off)`);
+  const saleLabel = () => `${SALE_NAME} BOGO (2nd box ${BOGO_PCT}% off)`;
+  const discountAmt = () => r2(saleAmt() + referralAmt());
   const grandTotal  = () => subtotal() - discountAmt();
 
   // Unique web-order reference: AA-YYMMDD-XXXX. No backend/shared counter exists
@@ -253,14 +290,16 @@
       msg.textContent = ''; msg.className = 'cart-referral__msg';
     } else if (resolveCode(raw)) {
       appliedCode = resolveCode(raw);
-      msg.textContent = (SALE_ACTIVE && appliedCode !== 'VETERAN')
-        ? `Code applied — ${DISCOUNT_PCT}% off on top of the ${SALE_PCT}% ${SALE_NAME} sale. ${SALE_PCT + DISCOUNT_PCT}% off total.`
-        : `Code applied — ${referralPct()}% off your order.`;
+      msg.textContent = !SALE_ACTIVE
+        ? `Code applied — ${referralPct()}% off your order.`
+        : appliedCode === 'VETERAN'
+          ? `Code applied — you get whichever is bigger: 20% off your order or the ${SALE_NAME} BOGO.`
+          : `Code applied — your BOGO boxes are now ${BOGO_MAX_PCT}% off.`;
       msg.className = 'cart-referral__msg is-ok';
     } else {
       appliedCode = null;
-      msg.textContent = (SALE_ACTIVE && appliedCode !== 'VETERAN')
-        ? `That code isn't valid. The ${SALE_PCT}% ${SALE_NAME} sale still applies.`
+      msg.textContent = SALE_ACTIVE
+        ? `That code isn't valid. The ${SALE_NAME} BOGO still applies.`
         : "That code isn't valid — your order stands at full price.";
       msg.className = 'cart-referral__msg is-err';
     }
@@ -279,26 +318,25 @@
     const saleNote = $('cart-sale-note');
 
     // Sitewide sale — shown whenever it's running and there's something in the cart.
-    if (SALE_ACTIVE && sub > 0 && appliedCode !== 'VETERAN') {
-      $('cart-sale-name').textContent = SALE_NAME;
-      $('cart-sale-pct').textContent  = SALE_PCT;
+    // Labels are rewritten whole (textContent) so they read right for BOGO.
+    if (sub > 0 && saleAmt() > 0) {
+      saleRow.querySelector('.cart-subtotal__label').textContent = saleLabel();
       $('cart-sale-amt').textContent  = '-' + fmtD(saleAmt());
       saleRow.hidden = false;
     } else {
       saleRow.hidden = true;
     }
 
-    // Referral code — stacks on top of the sale.
-    if (appliedCode && sub > 0) {
-      $('cart-discount-2').textContent    = '-' + fmtD(referralAmt());
-      $('cart-discount-code').textContent = appliedCode;
-      $('cart-discount-pct').textContent  = referralPct();
+    // Referral code — on BOGO boxes during the sale, whole order otherwise.
+    if (appliedCode && sub > 0 && referralAmt() > 0) {
+      $('cart-discount-2').textContent = '-' + fmtD(referralAmt());
+      discRow.querySelector('.cart-subtotal__label').textContent = referralLabel();
       discRow.hidden = false;
     } else {
       discRow.hidden = true;
     }
 
-    const anyDiscount = sub > 0 && (SALE_ACTIVE || appliedCode);
+    const anyDiscount = sub > 0 && discountAmt() > 0;
     if (anyDiscount) {
       $('cart-total-2').textContent = fmtD(grandTotal());
       totalRow.hidden = false;
@@ -308,10 +346,18 @@
 
     // Plain-language nudge on the first cart screen.
     if (saleNote) {
-      if (SALE_ACTIVE && sub > 0 && appliedCode !== 'VETERAN') {
-        saleNote.innerHTML = appliedCode
-          ? `<strong>${SALE_PCT}% ${escapeHtml(SALE_NAME)} sale applied automatically</strong>, plus ${DISCOUNT_PCT}% for code ${escapeHtml(appliedCode)} &mdash; ${SALE_PCT + DISCOUNT_PCT}% off, shown at the next step.`
-          : `<strong>${SALE_PCT}% ${escapeHtml(SALE_NAME)} sale applied automatically</strong> &mdash; shown at the next step. Have an affiliate code? Add it there for another ${DISCOUNT_PCT}% off.`;
+      if (SALE_ACTIVE && sub > 0) {
+        const n = escapeHtml(SALE_NAME);
+        const pairs = bogoPairs();
+        if (vetWins()) {
+          saleNote.innerHTML = `<strong>VETERAN 20% applied</strong> &mdash; it beats the ${n} BOGO on this order.`;
+        } else if (pairs === 0) {
+          saleNote.innerHTML = `<strong>${n} BOGO:</strong> add a second box and the one of equal or lesser value is ${BOGO_PCT}% off (${BOGO_MAX_PCT}% with an athlete code).`;
+        } else if (appliedCode && appliedCode !== 'VETERAN') {
+          saleNote.innerHTML = `<strong>${n} BOGO applied</strong> &mdash; ${pairs} box${pairs > 1 ? 'es' : ''} at ${BOGO_MAX_PCT}% off with code ${escapeHtml(appliedCode)}, shown at the next step.`;
+        } else {
+          saleNote.innerHTML = `<strong>${n} BOGO applied automatically</strong> &mdash; ${pairs} box${pairs > 1 ? 'es' : ''} at ${BOGO_PCT}% off, shown at the next step. Add an athlete code there to make ${pairs > 1 ? 'them' : 'it'} ${BOGO_MAX_PCT}% off.`;
+        }
         saleNote.hidden = false;
       } else {
         saleNote.hidden = true;
@@ -589,12 +635,12 @@
       const p = BY_KEY[l.key];
       return `<div class="ln"><span>${l.qty}&times; ${escapeHtml(p.name)} (${escapeHtml(p.mass)})</span><span>${fmt(p.price * l.qty)}</span></div>`;
     }).join('');
-    if (subtotal() > 0 && (SALE_ACTIVE || appliedCode)) {
-      const saleLine = (SALE_ACTIVE && appliedCode !== 'VETERAN')
-        ? `<div class="ln"><span>${escapeHtml(SALE_NAME)} sale (${SALE_PCT}% off)</span><span>-${fmtD(saleAmt())}</span></div>`
+    if (subtotal() > 0 && discountAmt() > 0) {
+      const saleLine = saleAmt() > 0
+        ? `<div class="ln"><span>${escapeHtml(saleLabel())}</span><span>-${fmtD(saleAmt())}</span></div>`
         : '';
-      const refLine = appliedCode
-        ? `<div class="ln"><span>Referral ${escapeHtml(appliedCode)} (${referralPct()}% off)</span><span>-${fmtD(referralAmt())}</span></div>`
+      const refLine = referralAmt() > 0
+        ? `<div class="ln"><span>${escapeHtml(referralLabel())}</span><span>-${fmtD(referralAmt())}</span></div>`
         : '';
       return rows +
         `<div class="ln"><span>Subtotal (free shipping)</span><span>${fmt(subtotal())}</span></div>` +
@@ -749,10 +795,13 @@
         return { name: p.name, code: p.code || '', mass: p.mass, vials: p.vials || 10, slug: p.slug, qty: l.qty, unit_price: p.price };
       }),
       referral_code: referralCode,
-      sale_name: SALE_ACTIVE ? SALE_NAME : '',
-      sale_rate: SALE_RATE,
+      sale_name: saleAmt() > 0 ? saleLabel() : '',
+      sale_type: SALE_ACTIVE ? 'bogo' : '',
+      // Effective rates (discount ÷ subtotal) so anything that recomputes
+      // subtotal × rate still lands on the exact dollar discounts below.
+      sale_rate: subtotal() > 0 ? Math.round(saleAmt() / subtotal() * 10000) / 10000 : 0,
       sale_discount: saleAmt(),
-      referral_rate: referralCode ? referralRate() : 0,
+      referral_rate: referralCode && subtotal() > 0 ? Math.round(referralAmt() / subtotal() * 10000) / 10000 : 0,
       referral_discount: referralAmt(),
       discount: discount,
       notes: notes || ''
@@ -762,11 +811,11 @@
       JSON.stringify(invoicePayload, null, 2) +
       '\nEND INVOICE PAYLOAD';
 
-    const totalsText = (SALE_ACTIVE || referralCode)
+    const totalsText = discount > 0
       ? [
           `Subtotal (free shipping): ${fmt(subtotal())}`,
-          SALE_ACTIVE ? `${SALE_NAME} sale (${SALE_PCT}% off): -${fmtD(saleAmt())}` : null,
-          referralCode ? `Referral ${referralCode} (${referralPct()}% off): -${fmtD(referralAmt())}` : null,
+          saleAmt() > 0 ? `${saleLabel()}: -${fmtD(saleAmt())}` : null,
+          referralAmt() > 0 ? `${referralLabel()}: -${fmtD(referralAmt())}` : null,
           `Order total: ${fmtD(total)}`,
         ].filter(Boolean).join('\n')
       : `Order total (free shipping): ${fmt(subtotal())}`;
@@ -825,7 +874,7 @@ ${payloadBlock}`;
       order_items: orderLinesText(),
       subtotal_free_shipping: fmt(subtotal()),
       referral_code: referralCode || '(none)',
-      discount_amount: referralCode ? '-' + fmtD(discount) : '$0',
+      discount_amount: discount > 0 ? '-' + fmtD(discount) : '$0',
       order_total: fmtD(total),
       total_boxes: count(),
       notes: notes || '(none)',
