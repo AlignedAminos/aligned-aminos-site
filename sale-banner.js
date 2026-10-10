@@ -1,25 +1,26 @@
 /* ==========================================================================
    Aligned Aminos — top banner + catalog "Ready to Ship"
-   1) Show-Day Flash banner — renders ONLY inside the flash window below.
+   1) Columbus Day BOGO banner — renders ONLY inside the window below.
    2) Catalog-only Ready-to-Ship badge + filter.
-   The window MUST match the JORDAN flash window in cart.js
-   (2026-09-12T23:00:00Z = Sun Sep 13 6am ICT  ->  2026-09-14T04:00:00Z = midnight ET).
+   CUTOFF MUST match SALE_CUTOFF in cart.js
+   (2026-10-14T04:00:00Z = end of Tue Oct 13, midnight ET).
    ========================================================================== */
 
 (function () {
   'use strict';
 
-  // Show-Day Flash window (match cart.js FLASH_START / FLASH_END).
-  var START  = new Date('2026-09-12T23:00:00Z'); // Sun Sep 13, 6:00am ICT
-  var CUTOFF = new Date('2026-09-14T04:00:00Z'); // Sun Sep 13, midnight ET
+  // Columbus Day BOGO window (CUTOFF must match cart.js SALE_CUTOFF).
+  var START  = new Date('2026-10-10T00:00:00Z'); // already open at deploy
+  var CUTOFF = new Date('2026-10-14T04:00:00Z'); // end of Tue Oct 13, midnight ET
   var now = new Date();
   if (now < START || now >= CUTOFF) return;   // outside the window: render nothing
 
   var SEGMENTS = [
-    '<strong>ON STAGE &middot; SHOW-DAY FLASH</strong>',
-    "Jordan's on stage in Thailand",
-    '<strong>20% OFF WITH CODE JORDAN</strong>',
-    'Show day only &mdash; Sun Sep 13'
+    '<strong>COLUMBUS DAY SALE</strong>',
+    '<strong>Buy one, get one 40% off</strong>',
+    'Add an athlete code &mdash; 2nd box 50% off',
+    'Equal or lesser value &middot; Ends Tue Oct 13',
+    'Research use only'
   ];
 
   var CSS = [
@@ -57,7 +58,7 @@
     bar.className = 'aa-ticker';
     bar.href = 'catalog.html';
     bar.setAttribute('aria-label',
-      "Show-Day Flash supporting Jordan's bodybuilding show: 20% off with code JORDAN. Show day only, Sunday September 13. Shop the catalog.");
+      'Columbus Day sale: buy one, get one of equal or lesser value 40% off, or 50% off with an athlete code. Ends Tuesday October 13. Research use only. Shop the catalog.');
     var track = document.createElement('span');
     track.className = 'aa-ticker__track';
     track.setAttribute('aria-hidden', 'true');
