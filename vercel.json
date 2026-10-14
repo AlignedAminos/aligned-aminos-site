@@ -1,0 +1,5 @@
+{
+  "redirects": [
+    { "source": "/((?!logo\\.png$).+)", "destination": "/", "permanent": false }
+  ]
+}
