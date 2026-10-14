@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Aligned Aminos — Store Closed</title>
+<meta name="robots" content="noindex" />
+<style>
+/* One quiet column on the logo's own paper tone, so the mark sits on the page instead of in a box. */
+:root {
+  --paper: #EDECE8;      /* matches the logo background */
+  --ink: #111214;
+  --ink-2: #4A4740;
+  --ink-3: #7A6F5E;
+  --ember: #FF5A1F;
+  --ember-deep: #C9341C;
+  --rule: rgba(17,18,20,0.12);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+.wrap {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding-block: max(40px, env(safe-area-inset-top, 0px)) max(32px, env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  text-align: center;
+}
+.logo { width: min(420px, 82vw); max-width: 100%; aspect-ratio: 924 / 615; overflow: hidden; }
+.logo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 42.8%; display: block; }
+.status {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--ember-deep);
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 6px 14px;
+}
+.status::before {
+  content: ""; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--ember);
+}
+.msg { max-width: 34rem; display: flex; flex-direction: column; gap: 14px; }
+h1 {
+  margin: 0;
+  font-size: clamp(1.6rem, 4.2vw, 2.25rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+p { margin: 0; font-size: 1.0625rem; line-height: 1.6; color: var(--ink-2); text-wrap: pretty; }
+.email {
+  display: inline-block;
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: clamp(1rem, 3.6vw, 1.15rem);
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 2px solid var(--ember);
+  padding-bottom: 2px;
+  word-break: break-all;
+  user-select: all;
+}
+.email:hover { color: var(--ember-deep); }
+.email:focus-visible { outline: 2px solid var(--ember); outline-offset: 4px; }
+footer {
+  margin-top: 12px;
+  padding-top: 18px;
+  border-top: 1px solid var(--rule);
+  width: min(34rem, 100%);
+  font-size: 12px;
+  color: var(--ink-3);
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="logo"><img src="/logo.png" alt="Aligned Aminos" width="1024" height="1024" /></div>
+  <span class="status">Store closed</span>
+  <div class="msg">
+    <h1>We're sorry, but this store is currently closed.</h1>
+    <p>To follow up on a previous order, or for more information, please reach out to us by email.</p>
+    <div><a class="email" href="mailto:alignedaminos@proton.me">alignedaminos@proton.me</a></div>
+  </div>
+  <footer>&copy; 2026 Aligned Aminos</footer>
+</main>
+</body>
+</html>
